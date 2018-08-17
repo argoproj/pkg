@@ -10,6 +10,15 @@ import (
 const nullIAMEndpoint = ""
 
 type S3Client interface {
+	// PutFile puts a single file to a bucket at the specified key
+	PutFile(path, bucket, key string) error
+
+	// PutDirectory puts a complete directory into a bucket key prefix, with each file in the directory
+	// a separate key in the bucket.
+	PutDirectory(path, bucket, key string) error
+
+	// GetFile downloads a file to a local file path
+	GetFile(bucket, key, path string) error
 }
 
 type S3ClientOpts struct {
