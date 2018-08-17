@@ -11,11 +11,11 @@ const nullIAMEndpoint = ""
 
 type S3Client interface {
 	// PutFile puts a single file to a bucket at the specified key
-	PutFile(path, bucket, key string) error
+	PutFile(bucket, key, path string) error
 
 	// PutDirectory puts a complete directory into a bucket key prefix, with each file in the directory
 	// a separate key in the bucket.
-	PutDirectory(path, bucket, key string) error
+	PutDirectory(bucket, key, path string) error
 
 	// GetFile downloads a file to a local file path
 	GetFile(bucket, key, path string) error
@@ -62,7 +62,7 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 }
 
 // PutFile puts a single file to a bucket at the specified key
-func (s *s3client) PutFile(path, bucket, key string) error {
+func (s *s3client) PutFile(bucket, key, path string) error {
 	log.Infof("Saving from %s to s3 (endpoint: %s, bucket: %s, key: %s)", path, s.Endpoint, bucket, key)
 	// NOTE: minio will detect proper mime-type based on file extension
 	_, err := s.minioClient.FPutObject(bucket, key, path, minio.PutObjectOptions{})
@@ -75,7 +75,7 @@ func (s *s3client) PutFile(path, bucket, key string) error {
 
 // PutDirectory puts a complete directory into a bucket key prefix, with each file in the directory
 // a separate key in the bucket.
-func (s *s3client) PutDirectory(path, bucket, key string) error {
+func (s *s3client) PutDirectory(bucket, key, path string) error {
 	return errors.New("not yet implemented")
 }
 
