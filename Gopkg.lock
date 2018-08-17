@@ -343,6 +343,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/dustin/go-humanize",
     "github.com/minio/minio-go",
     "github.com/minio/minio-go/pkg/credentials",
     "github.com/pkg/errors",
