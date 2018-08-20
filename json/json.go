@@ -23,3 +23,9 @@ func Unmarshal(j []byte, o interface{}, opts ...JSONOpt) error {
 	}
 	return d.Decode(&o)
 }
+
+// IsJSON tests whether or not the suppied byte array is valid JSON
+func IsJSON(j []byte) bool {
+	var js json.RawMessage
+	return json.Unmarshal(j, &js) == nil
+}
