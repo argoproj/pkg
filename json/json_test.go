@@ -27,6 +27,11 @@ func TestDisallowUnknownFields(t *testing.T) {
 	err = Unmarshal(jsonWithUnknownField, &obj, DisallowUnknownFields)
 	assert.Error(t, err)
 	assert.Equal(t, "foo", obj.MyField)
+
+	obj = mystruct{}
+	err = UnmarshalStrict(jsonWithUnknownField, &obj)
+	assert.Error(t, err)
+	assert.Equal(t, "foo", obj.MyField)
 }
 
 func TestIsJSON(t *testing.T) {
