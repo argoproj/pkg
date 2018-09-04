@@ -50,6 +50,8 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 	s3cli := s3client{
 		S3ClientOpts: opts,
 	}
+	s3cli.AccessKey = strings.TrimSpace(s3cli.AccessKey)
+	s3cli.SecretKey = strings.TrimSpace(s3cli.SecretKey)
 	var minioClient *minio.Client
 	var err error
 	if s3cli.AccessKey != "" {
