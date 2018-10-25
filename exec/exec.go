@@ -8,10 +8,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+
 // RunCommand is a convenience function to run/log a command and return/log stderr in an error upon
 // failure. Chops off a trailing newline (if present)
-func RunCommand(name string, arg ...string) (string, error) {
-	cmd := exec.Command(name, arg...)
+func RunCommandExt(cmd *exec.Cmd) (string, error) {
 	cmdStr := strings.Join(cmd.Args, " ")
 	log.Info(cmdStr)
 	outBytes, err := cmd.Output()
@@ -32,4 +32,8 @@ func RunCommand(name string, arg ...string) (string, error) {
 	}
 	log.Debug(output)
 	return output, nil
+}
+
+func RunCommand(name string, arg ...string) (string, error) {
+	return RunCommandExt(exec.Command(name, arg...))
 }
