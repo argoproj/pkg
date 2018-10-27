@@ -53,20 +53,20 @@
   revision = "23def4e6c14b4da8ac2ed8007337bc5eb5007998"
 
 [[projects]]
+  digest = "1:97df918963298c287643883209a2c3f642e6593379f97ab400c2a2e219ab647d"
+  name = "github.com/golang/protobuf"
+  packages = ["proto"]
+  pruneopts = "UT"
+  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
+  version = "v1.2.0"
+
+[[projects]]
   branch = "master"
   digest = "1:3ee90c0d94da31b442dde97c99635aaafec68d0b8a3c12ee2075c6bdabeec6bb"
   name = "github.com/google/gofuzz"
   packages = ["."]
   pruneopts = "UT"
   revision = "24818f796faf91cd76ec7bddd72458fbced7a6c1"
-
-[[projects]]
-  branch = "master"
-  digest = "1:0778dc7fce1b4669a8bfa7ae506ec1f595b6ab0f8989c1c0d22a8ca1144e9972"
-  name = "github.com/howeyc/gopass"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "bf9dde6d0d2c004a008c27aaee91170c786f6db8"
 
 [[projects]]
   digest = "1:8eb1de8112c9924d59bf1d3e5c26f5eaa2bfc2a5fcbb92dc1c2e4546d695f277"
@@ -193,10 +193,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c2bdf6bc7fd0c7278f9b145d502e9d77f0d2a3d426ebdf6b011182b03a5a7248"
+  digest = "1:9ad731bfe484bd07668e0892cacc6e4308448e65f77f573f4391100f7b6b1d16"
   name = "golang.org/x/net"
   packages = [
     "context",
+    "context/ctxhttp",
     "http/httpguts",
     "http2",
     "http2/hpack",
@@ -204,6 +205,17 @@
   ]
   pruneopts = "UT"
   revision = "49c15d80dfbc983ea25246ee959d970efe09ec09"
+
+[[projects]]
+  branch = "master"
+  digest = "1:1bce229fad01cbad9bd00e70ca32afff25ac2cea3dd710d50f88c967c1c3df65"
+  name = "golang.org/x/oauth2"
+  packages = [
+    ".",
+    "internal",
+  ]
+  pruneopts = "UT"
+  revision = "9dcd33a902f40452422c2367fefcb95b54f9f8f8"
 
 [[projects]]
   branch = "master"
@@ -249,6 +261,22 @@
   revision = "fbb02b2291d28baffd63558aa44b4b56f178d650"
 
 [[projects]]
+  digest = "1:6247f76e55a1e1a5c19a81e2d4b4dff6730461eeb5bbb0a16dd4a8ec8637ee93"
+  name = "google.golang.org/appengine"
+  packages = [
+    "internal",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch",
+  ]
+  pruneopts = "UT"
+  revision = "ae0ab99deb4dc413a2b4bd6c8bdd0eb67f1e4d06"
+  version = "v1.2.0"
+
+[[projects]]
   digest = "1:2d1fbdc6777e5408cabeb02bf336305e724b925ff4546ded0fa8715a7267922a"
   name = "gopkg.in/inf.v0"
   packages = ["."]
@@ -265,21 +293,14 @@
   version = "v2.2.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:659de1ae1bf77aceac470ea1b1050fe6d435ee4e3087f1e4c7354b9621022191"
-  name = "k8s.io/api"
-  packages = ["core/v1"]
-  pruneopts = "UT"
-  revision = "183f3326a9353bd6d41430fc80f96259331d029c"
-
-[[projects]]
-  branch = "release-1.10"
-  digest = "1:477e5874054e0369c502256e1f5131c322ca1ce6dd3fd3eb8d3206032c41d76b"
+  branch = "release-1.12"
+  digest = "1:c2da2bc37908e91d06892f83a3610019af9d01f5b550118361fb3233292a8144"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
     "pkg/api/resource",
     "pkg/apis/meta/v1",
+    "pkg/apis/meta/v1/unstructured",
     "pkg/conversion",
     "pkg/conversion/queryparams",
     "pkg/fields",
@@ -299,27 +320,28 @@
     "pkg/util/framer",
     "pkg/util/intstr",
     "pkg/util/json",
+    "pkg/util/naming",
     "pkg/util/net",
     "pkg/util/runtime",
     "pkg/util/sets",
     "pkg/util/validation",
     "pkg/util/validation/field",
-    "pkg/util/wait",
     "pkg/util/yaml",
     "pkg/version",
     "pkg/watch",
     "third_party/forked/golang/reflect",
   ]
   pruneopts = "UT"
-  revision = "e386b2658ed20923da8cc9250e552f082899a1ee"
+  revision = "f71dbbc36e126f5a371b85f6cca96bc8c57db2b6"
 
 [[projects]]
-  branch = "release-7.0"
-  digest = "1:370566a2335a3d0be8a614888194db1f4468392ab9608ed07c15fad559ab5f24"
+  branch = "release-9.0"
+  digest = "1:45daa6f27ea4e53fb9bc799c1b0792f14ec04e14b59f7628956ff59745c46d93"
   name = "k8s.io/client-go"
   packages = [
     "pkg/apis/clientauthentication",
     "pkg/apis/clientauthentication/v1alpha1",
+    "pkg/apis/clientauthentication/v1beta1",
     "pkg/version",
     "plugin/pkg/client/auth/exec",
     "rest",
@@ -332,12 +354,13 @@
     "tools/metrics",
     "transport",
     "util/cert",
+    "util/connrotation",
     "util/flowcontrol",
     "util/homedir",
     "util/integer",
   ]
   pruneopts = "UT"
-  revision = "a312bfe35c401f70e5ea0add48b50da283031dc3"
+  revision = "13596e875accbd333e0b5bd5fd9462185acd9958"
 
 [solve-meta]
   analyzer-name = "dep"
