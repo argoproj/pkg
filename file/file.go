@@ -19,3 +19,9 @@ func IsDirectory(path string) (bool, error) {
 	}
 	return stat.IsDir(), nil
 }
+
+// Exists returns whether or not a path exists
+func Exists(path string) bool {
+	_, err := os.Stat(path)
+	return !os.IsNotExist(err)
+}
