@@ -12,7 +12,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// RunCommand is a convenience function to run/log a command and return/log stderr in an error upon
+var ErrWaitPIDTimeout = fmt.Errorf("Timed out waiting for PID to complete")
+
+// RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
 // failure. Chops off a trailing newline (if present)
 func RunCommandExt(cmd *exec.Cmd) (string, error) {
 	cmdStr := strings.Join(cmd.Args, " ")
@@ -44,6 +46,7 @@ func RunCommand(name string, arg ...string) (string, error) {
 // WaitPIDOpts are options to WaitPID
 type WaitPIDOpts struct {
 	PollInterval time.Duration
+	Timeout      time.Duration
 }
 
 // WaitPID waits for a non-child process id to exit
@@ -51,22 +54,39 @@ func WaitPID(pid int, opts ...WaitPIDOpts) error {
 	if runtime.GOOS != "linux" {
 		return errors.Errorf("Platform '%s' unsupported", runtime.GOOS)
 	}
-	var opt WaitPIDOpts
+	var timeout time.Duration
+	var pollInterval = time.Second
 	if len(opts) > 0 {
-		opt = opts[0]
-	} else {
-		opt = WaitPIDOpts{PollInterval: 1}
+		if opts[0].PollInterval != 0 {
+			pollInterval = opts[0].PollInterval
+		}
+		if opts[0].Timeout != 0 {
+			timeout = opts[0].Timeout
+		}
 	}
 	path := fmt.Sprintf("/proc/%d", pid)
-	for {
-		_, err := os.Stat(path)
-		if err != nil {
-			if os.IsNotExist(err) {
-				break
-			}
-			return errors.WithStack(err)
-		}
-		time.Sleep(opt.PollInterval)
+
+	ticker := time.NewTicker(pollInterval)
+	defer ticker.Stop()
+	timer := time.NewTimer(timeout)
+	if timeout == 0 {
+		timer.Stop()
+	} else {
+		defer timer.Stop()
 	}
-	return nil
+
+	for {
+		select {
+		case <-ticker.C:
+			_, err := os.Stat(path)
+			if err != nil {
+				if os.IsNotExist(err) {
+					return nil
+				}
+				return errors.WithStack(err)
+			}
+		case <-timer.C:
+			return ErrWaitPIDTimeout
+		}
+	}
 }
