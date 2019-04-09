@@ -68,13 +68,10 @@ func WaitPID(pid int, opts ...WaitPIDOpts) error {
 
 	ticker := time.NewTicker(pollInterval)
 	defer ticker.Stop()
-	timer := time.NewTimer(timeout)
-	if timeout == 0 {
-		timer.Stop()
-	} else {
-		defer timer.Stop()
+	var timoutCh <-chan time.Time
+	if timeout != 0 {
+		timoutCh = time.NewTimer(timeout).C
 	}
-
 	for {
 		select {
 		case <-ticker.C:
@@ -85,7 +82,7 @@ func WaitPID(pid int, opts ...WaitPIDOpts) error {
 				}
 				return errors.WithStack(err)
 			}
-		case <-timer.C:
+		case <-timoutCh:
 			return ErrWaitPIDTimeout
 		}
 	}
