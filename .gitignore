@@ -5,4 +5,4 @@ vendor/
 dist/
 # delve debug binaries
 debug.test
-
+coverage.out

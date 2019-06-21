@@ -13,8 +13,7 @@ import (
 func TestIsRequestEntityTooLargeErr(t *testing.T) {
 	assert.False(t, IsRequestEntityTooLargeErr(nil))
 
-	var err error
-	err = &apierr.StatusError{metav1.Status{
+	err := &apierr.StatusError{metav1.Status{
 		Status:  metav1.StatusFailure,
 		Code:    http.StatusRequestEntityTooLarge,
 		Reason:  "",

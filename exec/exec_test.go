@@ -17,7 +17,7 @@ func TestRunCommand(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, "hello world", message)
 
-	message, err = RunCommand("ls", "non-existant-dir")
+	_, err = RunCommand("ls", "non-existant-dir")
 	assert.NotNil(t, err)
 	assert.Contains(t, err.Error(), "No such file or directory")
 }

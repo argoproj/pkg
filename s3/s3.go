@@ -168,8 +168,9 @@ func (s *s3client) IsDirectory(bucket, key string) (bool, error) {
 	for obj := range objCh {
 		if obj.Err != nil {
 			return false, errors.WithStack(obj.Err)
+		} else {
+			return true, nil
 		}
-		return true, nil
 	}
 	return false, nil
 }

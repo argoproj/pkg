@@ -9,7 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-var durationRegex = regexp.MustCompile("^(\\d+)([smhd])$")
+var durationRegex = regexp.MustCompile(`^(\d+)([smhd])$`)
 
 // ParseDuration parses a duration string and returns the time.Duration
 func ParseDuration(duration string) (*time.Duration, error) {
