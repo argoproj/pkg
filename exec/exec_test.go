@@ -16,7 +16,7 @@ func TestRunCommand(t *testing.T) {
 
 	message, err := RunCommand("echo", CmdOpts{}, "hello world")
 	assert.NoError(t, err)
-	assert.Equal(t, "hello world\n", message)
+	assert.Equal(t, "hello world", message)
 
 	assert.Len(t, hook.Entries, 2)
 
@@ -63,5 +63,5 @@ func TestRunInDir(t *testing.T) {
 	cmd.Dir = "/"
 	message, err := RunCommandExt(cmd, CmdOpts{})
 	assert.Nil(t, err)
-	assert.Equal(t, "/\n", message)
+	assert.Equal(t, "/", message)
 }
