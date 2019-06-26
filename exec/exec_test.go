@@ -1,8 +1,10 @@
 package exec
 
 import (
+	"fmt"
 	"os/exec"
 	"testing"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
@@ -27,6 +29,12 @@ func TestRunCommand(t *testing.T) {
 	assert.Equal(t, log.DebugLevel, hook.Entries[1].Level)
 	assert.Equal(t, "hello world\n", hook.Entries[1].Message)
 	assert.NotNil(t, hook.Entries[1].Data["duration"])
+}
+
+func TestRunCommandTimeout(t *testing.T) {
+	duration := 1 * time.Nanosecond
+	_, err := RunCommand("sleep", CmdOpts{timeout: duration}, "2")
+	assert.Equal(t, err, fmt.Errorf("`%v` timeout after %v", "sleep 2", duration))
 }
 
 func TestTrimmedOutput(t *testing.T) {
