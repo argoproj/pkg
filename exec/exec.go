@@ -18,24 +18,29 @@ type CmdOpts struct {
 }
 
 // RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
-// failure. Chops off a trailing newline (if present)
+// failure.
 func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
-	cmdStr := strings.Join(cmd.Args, " ")
-	log.WithFields(log.Fields{"dir": cmd.Dir}).Info(cmdStr)
+
+	// log in a way we can copy-and-paste into a terminal
+	args := strings.Join(cmd.Args, " ")
+	log.WithFields(log.Fields{"dir": cmd.Dir}).Info(args)
+
+	start := time.Now()
 	outBytes, err := cmd.Output()
-	log.Debug(string(outBytes))
-	outString := strings.TrimSpace(string(outBytes))
+	output := string(outBytes)
+	log.WithFields(log.Fields{"err": err, "duration": time.Since(start)}).Debug(output)
+
 	if err != nil {
 		exErr, ok := err.(*exec.ExitError)
-		if !ok {
-			return "", errors.WithStack(err)
+		if ok {
+			// clearly propagate diagnostics up
+			err := fmt.Errorf("`%v` failed: %v", args, string(exErr.Stderr))
+			log.Error(err)
+			return output, err
 		}
-		errOutput := string(exErr.Stderr)
-		log.Errorf("`%s` failed: %s", cmdStr, errOutput)
-		return outString, fmt.Errorf("`%s` failed: %v", cmdStr, strings.TrimSpace(errOutput))
 	}
-	// Trims off a single newline for user convenience
-	return outString, nil
+
+	return output, err
 }
 
 func RunCommand(name string, opts CmdOpts, arg ...string) (string, error) {
