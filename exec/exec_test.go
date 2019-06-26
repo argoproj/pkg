@@ -44,7 +44,7 @@ func TestRunCommandErr(t *testing.T) {
 	assert.Equal(t, "ls non-existent", hook.Entries[0].Message)
 	assert.Equal(t, log.InfoLevel, hook.Entries[0].Level)
 	assert.Equal(t, "`ls non-existent` failed: ls: non-existent: No such file or directory\n", hook.Entries[1].Message)
-	assert.Equal(t, log.DebugLevel, hook.Entries[1].Level)
+	assert.Equal(t, log.ErrorLevel, hook.Entries[1].Level)
 }
 
 func TestRunInDir(t *testing.T) {
