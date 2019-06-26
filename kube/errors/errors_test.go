@@ -14,8 +14,8 @@ func TestIsRequestEntityTooLargeErr(t *testing.T) {
 	assert.False(t, IsRequestEntityTooLargeErr(nil))
 
 	err := &apierr.StatusError{ErrStatus: metav1.Status{
-		Status:  metav1.StatusFailure,
-		Code:    http.StatusRequestEntityTooLarge,
+		Status: metav1.StatusFailure,
+		Code:   http.StatusRequestEntityTooLarge,
 	}}
 	assert.True(t, IsRequestEntityTooLargeErr(err))
 
@@ -27,8 +27,8 @@ func TestIsRequestEntityTooLargeErr(t *testing.T) {
 	assert.True(t, IsRequestEntityTooLargeErr(err))
 
 	err = &apierr.StatusError{ErrStatus: metav1.Status{
-		Status:  metav1.StatusFailure,
-		Code:    http.StatusInternalServerError,
+		Status: metav1.StatusFailure,
+		Code:   http.StatusInternalServerError,
 	}}
 	assert.False(t, IsRequestEntityTooLargeErr(err))
 }

@@ -15,7 +15,6 @@ import (
 var ErrWaitPIDTimeout = fmt.Errorf("Timed out waiting for PID to complete")
 
 type CmdOpts struct {
-	timeout time.Duration
 }
 
 // RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
