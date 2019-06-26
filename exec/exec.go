@@ -21,9 +21,10 @@ type CmdOpts struct {
 // failure. Chops off a trailing newline (if present)
 func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	cmdStr := strings.Join(cmd.Args, " ")
-	log.Info(cmdStr)
+	log.WithFields(log.Fields{"dir": cmd.Dir}).Info(cmdStr)
 	outBytes, err := cmd.Output()
 	log.Debug(string(outBytes))
+	outString := strings.TrimSpace(string(outBytes))
 	if err != nil {
 		exErr, ok := err.(*exec.ExitError)
 		if !ok {
@@ -31,10 +32,10 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 		}
 		errOutput := string(exErr.Stderr)
 		log.Errorf("`%s` failed: %s", cmdStr, errOutput)
-		return "", fmt.Errorf("`%s` failed: %v", cmdStr, strings.TrimSpace(errOutput))
+		return outString, fmt.Errorf("`%s` failed: %v", cmdStr, strings.TrimSpace(errOutput))
 	}
 	// Trims off a single newline for user convenience
-	return strings.TrimSpace(string(outBytes)), nil
+	return outString, nil
 }
 
 func RunCommand(name string, opts CmdOpts, arg ...string) (string, error) {
