@@ -13,28 +13,22 @@ import (
 func TestIsRequestEntityTooLargeErr(t *testing.T) {
 	assert.False(t, IsRequestEntityTooLargeErr(nil))
 
-	err := &apierr.StatusError{metav1.Status{
+	err := &apierr.StatusError{ErrStatus: metav1.Status{
 		Status:  metav1.StatusFailure,
 		Code:    http.StatusRequestEntityTooLarge,
-		Reason:  "",
-		Message: "",
 	}}
 	assert.True(t, IsRequestEntityTooLargeErr(err))
 
-	err = &apierr.StatusError{metav1.Status{
+	err = &apierr.StatusError{ErrStatus: metav1.Status{
 		Status:  metav1.StatusFailure,
 		Code:    http.StatusInternalServerError,
-		Reason:  "",
 		Message: "etcdserver: request is too large",
 	}}
 	assert.True(t, IsRequestEntityTooLargeErr(err))
 
-	err = &apierr.StatusError{metav1.Status{
+	err = &apierr.StatusError{ErrStatus: metav1.Status{
 		Status:  metav1.StatusFailure,
 		Code:    http.StatusInternalServerError,
-		Reason:  "",
-		Message: "",
 	}}
 	assert.False(t, IsRequestEntityTooLargeErr(err))
-
 }

@@ -14,12 +14,17 @@ import (
 
 var ErrWaitPIDTimeout = fmt.Errorf("Timed out waiting for PID to complete")
 
+type CmdOpts struct {
+	timeout time.Duration
+}
+
 // RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
 // failure. Chops off a trailing newline (if present)
-func RunCommandExt(cmd *exec.Cmd) (string, error) {
+func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	cmdStr := strings.Join(cmd.Args, " ")
 	log.Info(cmdStr)
 	outBytes, err := cmd.Output()
+	log.Debug(string(outBytes))
 	if err != nil {
 		exErr, ok := err.(*exec.ExitError)
 		if !ok {
@@ -27,15 +32,14 @@ func RunCommandExt(cmd *exec.Cmd) (string, error) {
 		}
 		errOutput := string(exErr.Stderr)
 		log.Errorf("`%s` failed: %s", cmdStr, errOutput)
-		return "", errors.New(strings.TrimSpace(errOutput))
+		return "", fmt.Errorf("`%s` failed: %v", cmdStr, strings.TrimSpace(errOutput))
 	}
-	log.Debug(string(outBytes))
 	// Trims off a single newline for user convenience
 	return strings.TrimSpace(string(outBytes)), nil
 }
 
-func RunCommand(name string, arg ...string) (string, error) {
-	return RunCommandExt(exec.Command(name, arg...))
+func RunCommand(name string, opts CmdOpts, arg ...string) (string, error) {
+	return RunCommandExt(exec.Command(name, arg...), opts)
 }
 
 // WaitPIDOpts are options to WaitPID
