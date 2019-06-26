@@ -58,9 +58,9 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 		return strings.TrimSpace(output), err
 	case err := <-done:
 		if err != nil {
-			err = fmt.Errorf("`%v` failed: %v", args, stderr.String())
 			output := stdout.String()
 			log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+			err := fmt.Errorf("`%v` failed: %v", args, strings.TrimSpace(stderr.String()))
 			log.Error(err)
 			return strings.TrimSpace(output), err
 		}

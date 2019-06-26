@@ -48,22 +48,23 @@ func TestRunCommandErr(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	defer log.SetLevel(log.InfoLevel)
 
-	_, err := RunCommand("ls", CmdOpts{}, "non-existent")
+	output, err := RunCommand("sh", CmdOpts{}, "-c", "echo my-output && echo my-error >&2 && exit 1")
 	assert.NotNil(t, err)
-	assert.Contains(t, err.Error(), "No such file or directory")
+	assert.Equal(t, "my-output", output)
+	assert.EqualError(t, err, "`sh -c echo my-output && echo my-error >&2 && exit 1` failed: my-error")
 
 	assert.Len(t, hook.Entries, 3)
 
 	assert.Equal(t, log.InfoLevel, hook.Entries[0].Level)
-	assert.Equal(t, "ls non-existent", hook.Entries[0].Message)
+	assert.Equal(t, "sh -c echo my-output && echo my-error >&2 && exit 1", hook.Entries[0].Message)
 	assert.Equal(t, log.Fields{"dir": ""}, hook.Entries[0].Data)
 
 	assert.Equal(t, log.DebugLevel, hook.Entries[1].Level)
-	assert.Equal(t, "", hook.Entries[1].Message)
+	assert.Equal(t, "my-output\n", hook.Entries[1].Message)
 	assert.NotNil(t, hook.Entries[1].Data["duration"])
 
 	assert.Equal(t, log.ErrorLevel, hook.Entries[2].Level)
-	assert.Equal(t, "`ls non-existent` failed: ls: non-existent: No such file or directory\n", hook.Entries[2].Message)
+	assert.Equal(t, "`sh -c echo my-output && echo my-error >&2 && exit 1` failed: my-error", hook.Entries[2].Message)
 }
 
 func TestRunInDir(t *testing.T) {
