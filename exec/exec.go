@@ -52,15 +52,17 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	case <-time.After(timeout):
 		_ = cmd.Process.Kill()
 		err = fmt.Errorf("`%v` timeout after %v", args, timeout)
-		log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(stdout.String())
+		output := stdout.String()
+		log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
 		log.Error(err)
-		return "", err
+		return output, err
 	case err := <-done:
 		if err != nil {
 			err = fmt.Errorf("`%v` failed: %v", args, stderr.String())
-			log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(stdout.String())
+			output := stdout.String()
+			log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
 			log.Error(err)
-			return "", err
+			return output, err
 		}
 	}
 
