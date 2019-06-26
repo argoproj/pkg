@@ -51,9 +51,9 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	select {
 	case <-time.After(timeout):
 		_ = cmd.Process.Kill()
-		err = fmt.Errorf("`%v` timeout after %v", args, timeout)
 		output := stdout.String()
 		log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+		err = fmt.Errorf("`%v` timeout after %v", args, timeout)
 		log.Error(err)
 		return strings.TrimSpace(output), err
 	case err := <-done:
