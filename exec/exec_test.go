@@ -63,5 +63,5 @@ func TestRunInDir(t *testing.T) {
 	cmd.Dir = "/"
 	message, err := RunCommandExt(cmd, CmdOpts{})
 	assert.Nil(t, err)
-	assert.Equal(t, "/", message)
+	assert.Equal(t, "/\n", message)
 }
