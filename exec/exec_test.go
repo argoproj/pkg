@@ -26,7 +26,6 @@ func TestRunCommand(t *testing.T) {
 
 	assert.Equal(t, log.DebugLevel, hook.Entries[1].Level)
 	assert.Equal(t, "hello world\n", hook.Entries[1].Message)
-	assert.Nil(t, hook.Entries[1].Data["err"])
 	assert.NotNil(t, hook.Entries[1].Data["duration"])
 }
 
@@ -53,7 +52,6 @@ func TestRunCommandErr(t *testing.T) {
 
 	assert.Equal(t, log.DebugLevel, hook.Entries[1].Level)
 	assert.Equal(t, "", hook.Entries[1].Message)
-	assert.Error(t, hook.Entries[1].Data["err"].(error))
 	assert.NotNil(t, hook.Entries[1].Data["duration"])
 
 	assert.Equal(t, log.ErrorLevel, hook.Entries[2].Level)

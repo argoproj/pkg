@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -25,22 +26,43 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	args := strings.Join(cmd.Args, " ")
 	log.WithFields(log.Fields{"dir": cmd.Dir}).Info(args)
 
-	start := time.Now()
-	outBytes, err := cmd.Output()
-	output := string(outBytes)
-	log.WithFields(log.Fields{"err": err, "duration": time.Since(start)}).Debug(output)
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 
+	start := time.Now()
+	err := cmd.Start()
 	if err != nil {
-		exErr, ok := err.(*exec.ExitError)
-		if ok {
-			// clearly propagate diagnostics up
-			err := fmt.Errorf("`%v` failed: %v", args, string(exErr.Stderr))
+		return "", err
+	}
+
+	done := make(chan error)
+	go func() { done <- cmd.Wait() }()
+
+	// Start a timer
+	timeout := time.After(60 * time.Second)
+
+	select {
+	case <-timeout:
+		_ = cmd.Process.Kill()
+		err = fmt.Errorf("`%v` timeout after %v", args, timeout)
+		log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(stdout.String())
+		log.Error(err)
+		return "", err
+	case err := <-done:
+		if err != nil {
+			err = fmt.Errorf("`%v` failed: %v", args, stderr.String())
+			log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(stdout.String())
 			log.Error(err)
-			return output, err
+			return "", err
 		}
 	}
 
-	return output, err
+	output := stdout.String()
+	log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+
+	return output, nil
 }
 
 func RunCommand(name string, opts CmdOpts, arg ...string) (string, error) {
