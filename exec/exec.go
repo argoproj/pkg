@@ -29,14 +29,9 @@ func RunCommandExt(cmd *exec.Cmd) (string, error) {
 		log.Errorf("`%s` failed: %s", cmdStr, errOutput)
 		return "", errors.New(strings.TrimSpace(errOutput))
 	}
+	log.Debug(string(outBytes))
 	// Trims off a single newline for user convenience
-	output := string(outBytes)
-	outputLen := len(output)
-	if outputLen > 0 && output[outputLen-1] == '\n' {
-		output = output[0 : outputLen-1]
-	}
-	log.Debug(output)
-	return output, nil
+	return strings.TrimSpace(string(outBytes)), nil
 }
 
 func RunCommand(name string, arg ...string) (string, error) {
