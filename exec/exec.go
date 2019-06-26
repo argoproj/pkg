@@ -11,6 +11,8 @@ import (
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/argoproj/pkg/rand"
 )
 
 var ErrWaitPIDTimeout = fmt.Errorf("Timed out waiting for PID to complete")
@@ -23,9 +25,10 @@ type CmdOpts struct {
 // failure.
 func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 
+	logCtx := log.WithFields(log.Fields{"execID": rand.RandString(5)})
 	// log in a way we can copy-and-paste into a terminal
 	args := strings.Join(cmd.Args, " ")
-	log.WithFields(log.Fields{"dir": cmd.Dir}).Info(args)
+	logCtx.WithFields(log.Fields{"dir": cmd.Dir}).Info(args)
 
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -52,22 +55,22 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	case <-time.After(timeout):
 		_ = cmd.Process.Kill()
 		output := stdout.String()
-		log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
 		err = fmt.Errorf("`%v` timeout after %v", args, timeout)
-		log.Error(err)
+		logCtx.Error(err)
 		return strings.TrimSpace(output), err
 	case err := <-done:
 		if err != nil {
 			output := stdout.String()
-			log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+			logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
 			err := fmt.Errorf("`%v` failed: %v", args, strings.TrimSpace(stderr.String()))
-			log.Error(err)
+			logCtx.Error(err)
 			return strings.TrimSpace(output), err
 		}
 	}
 
 	output := stdout.String()
-	log.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+	logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
 
 	return strings.TrimSpace(output), nil
 }
