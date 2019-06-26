@@ -42,7 +42,7 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	go func() { done <- cmd.Wait() }()
 
 	// Start a timer
-	timeout := 60 * time.Second
+	timeout := 300 * time.Second
 
 	if opts.timeout != time.Duration(0) {
 		timeout = opts.timeout
