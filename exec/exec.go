@@ -21,6 +21,10 @@ type CmdOpts struct {
 	timeout time.Duration
 }
 
+var DefaultCmdOpts = CmdOpts{
+	timeout: time.Duration(0),
+}
+
 // RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
 // failure.
 func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
@@ -45,14 +49,20 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	go func() { done <- cmd.Wait() }()
 
 	// Start a timer
-	timeout := 300 * time.Second
+	timeout := DefaultCmdOpts.timeout
 
 	if opts.timeout != time.Duration(0) {
 		timeout = opts.timeout
 	}
 
+	var timoutCh <-chan time.Time
+	if timeout != 0 {
+		timoutCh = time.NewTimer(timeout).C
+	}
+
 	select {
-	case <-time.After(timeout):
+	//noinspection ALL
+	case <- timoutCh:
 		_ = cmd.Process.Kill()
 		output := stdout.String()
 		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
