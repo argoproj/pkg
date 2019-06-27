@@ -18,11 +18,11 @@ import (
 var ErrWaitPIDTimeout = fmt.Errorf("Timed out waiting for PID to complete")
 
 type CmdOpts struct {
-	timeout time.Duration
+	Timeout time.Duration
 }
 
 var DefaultCmdOpts = CmdOpts{
-	timeout: time.Duration(0),
+	Timeout: time.Duration(0),
 }
 
 // RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
@@ -49,10 +49,10 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	go func() { done <- cmd.Wait() }()
 
 	// Start a timer
-	timeout := DefaultCmdOpts.timeout
+	timeout := DefaultCmdOpts.Timeout
 
-	if opts.timeout != time.Duration(0) {
-		timeout = opts.timeout
+	if opts.Timeout != time.Duration(0) {
+		timeout = opts.Timeout
 	}
 
 	var timoutCh <-chan time.Time
