@@ -39,7 +39,7 @@ func TestRunCommandTimeout(t *testing.T) {
 	log.SetLevel(log.DebugLevel)
 	defer log.SetLevel(log.InfoLevel)
 
-	output, err := RunCommand("sh", CmdOpts{timeout: 500 * time.Millisecond}, "-c", "echo my-output && echo my-error >&2 && sleep 2")
+	output, err := RunCommand("sh", CmdOpts{Timeout: 500 * time.Millisecond}, "-c", "echo my-output && echo my-error >&2 && sleep 2")
 	assert.Equal(t, output, "my-output")
 	assert.EqualError(t, err, "`sh -c echo my-output && echo my-error >&2 && sleep 2` timeout after 500ms")
 

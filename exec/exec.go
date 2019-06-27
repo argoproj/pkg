@@ -62,7 +62,7 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 
 	select {
 	//noinspection ALL
-	case <- timoutCh:
+	case <-timoutCh:
 		_ = cmd.Process.Kill()
 		output := stdout.String()
 		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
