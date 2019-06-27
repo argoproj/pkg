@@ -68,21 +68,21 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
 		err = fmt.Errorf("`%v` timeout after %v", args, timeout)
 		logCtx.Error(err)
-		return strings.TrimSpace(output), err
+		return strings.TrimSuffix(output, "\n"), err
 	case err := <-done:
 		if err != nil {
 			output := stdout.String()
 			logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
 			err := fmt.Errorf("`%v` failed: %v", args, strings.TrimSpace(stderr.String()))
 			logCtx.Error(err)
-			return strings.TrimSpace(output), err
+			return strings.TrimSuffix(output, "\n"), err
 		}
 	}
 
 	output := stdout.String()
 	logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
 
-	return strings.TrimSpace(output), nil
+	return strings.TrimSuffix(output, "\n"), nil
 }
 
 func RunCommand(name string, opts CmdOpts, arg ...string) (string, error) {
