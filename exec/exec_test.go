@@ -68,14 +68,12 @@ func TestTrimmedOutput(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "hello world", message)
 }
-
-func TestRunCommandErr(t *testing.T) {
+func TestRunCommandExitErr(t *testing.T) {
 	hook := test.NewGlobal()
 	log.SetLevel(log.DebugLevel)
 	defer log.SetLevel(log.InfoLevel)
 
 	output, err := RunCommand("sh", CmdOpts{}, "-c", "echo my-output && echo my-error >&2 && exit 1")
-	assert.NotNil(t, err)
 	assert.Equal(t, "my-output", output)
 	assert.EqualError(t, err, "`sh -c echo my-output && echo my-error >&2 && exit 1` failed: my-error")
 
@@ -97,6 +95,17 @@ func TestRunCommandErr(t *testing.T) {
 	assert.Equal(t, log.ErrorLevel, entry.Level)
 	assert.Equal(t, "`sh -c echo my-output && echo my-error >&2 && exit 1` failed: my-error", entry.Message)
 	assert.Contains(t, entry.Data, "execID")
+}
+
+func TestRunCommandErr(t *testing.T) {
+	//_ := test.NewGlobal()
+	log.SetLevel(log.DebugLevel)
+	defer log.SetLevel(log.InfoLevel)
+
+	// this would create a panic
+	output, err := RunCommand("", CmdOpts{})
+	assert.Empty(t, output)
+	assert.EqualError(t, err, "fork/exec : no such file or directory")
 }
 
 func TestRunInDir(t *testing.T) {
