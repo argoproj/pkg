@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/minio/minio-go"
 	"github.com/minio/minio-go/pkg/credentials"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
