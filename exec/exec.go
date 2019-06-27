@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,37 +11,82 @@ import (
 
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/argoproj/pkg/rand"
 )
 
 var ErrWaitPIDTimeout = fmt.Errorf("Timed out waiting for PID to complete")
 
-// RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
-// failure. Chops off a trailing newline (if present)
-func RunCommandExt(cmd *exec.Cmd) (string, error) {
-	cmdStr := strings.Join(cmd.Args, " ")
-	log.Info(cmdStr)
-	outBytes, err := cmd.Output()
-	if err != nil {
-		exErr, ok := err.(*exec.ExitError)
-		if !ok {
-			return "", errors.WithStack(err)
-		}
-		errOutput := string(exErr.Stderr)
-		log.Errorf("`%s` failed: %s", cmdStr, errOutput)
-		return "", errors.New(strings.TrimSpace(errOutput))
-	}
-	// Trims off a single newline for user convenience
-	output := string(outBytes)
-	outputLen := len(output)
-	if outputLen > 0 && output[outputLen-1] == '\n' {
-		output = output[0 : outputLen-1]
-	}
-	log.Debug(output)
-	return output, nil
+type CmdOpts struct {
+	timeout time.Duration
 }
 
-func RunCommand(name string, arg ...string) (string, error) {
-	return RunCommandExt(exec.Command(name, arg...))
+var DefaultCmdOpts = CmdOpts{
+	timeout: time.Duration(0),
+}
+
+// RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
+// failure.
+func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
+
+	logCtx := log.WithFields(log.Fields{"execID": rand.RandString(5)})
+	// log in a way we can copy-and-paste into a terminal
+	args := strings.Join(cmd.Args, " ")
+	logCtx.WithFields(log.Fields{"dir": cmd.Dir}).Info(args)
+
+	var stdout bytes.Buffer
+	var stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+
+	start := time.Now()
+	err := cmd.Start()
+	if err != nil {
+		return "", err
+	}
+
+	done := make(chan error)
+	go func() { done <- cmd.Wait() }()
+
+	// Start a timer
+	timeout := DefaultCmdOpts.timeout
+
+	if opts.timeout != time.Duration(0) {
+		timeout = opts.timeout
+	}
+
+	var timoutCh <-chan time.Time
+	if timeout != 0 {
+		timoutCh = time.NewTimer(timeout).C
+	}
+
+	select {
+	//noinspection ALL
+	case <- timoutCh:
+		_ = cmd.Process.Kill()
+		output := stdout.String()
+		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+		err = fmt.Errorf("`%v` timeout after %v", args, timeout)
+		logCtx.Error(err)
+		return strings.TrimSuffix(output, "\n"), err
+	case err := <-done:
+		if err != nil {
+			output := stdout.String()
+			logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+			err := fmt.Errorf("`%v` failed: %v", args, strings.TrimSpace(stderr.String()))
+			logCtx.Error(err)
+			return strings.TrimSuffix(output, "\n"), err
+		}
+	}
+
+	output := stdout.String()
+	logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+
+	return strings.TrimSuffix(output, "\n"), nil
+}
+
+func RunCommand(name string, opts CmdOpts, arg ...string) (string, error) {
+	return RunCommandExt(exec.Command(name, arg...), opts)
 }
 
 // WaitPIDOpts are options to WaitPID

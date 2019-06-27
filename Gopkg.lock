@@ -161,9 +161,12 @@
   version = "v1.0.0"
 
 [[projects]]
-  digest = "1:d867dfa6751c8d7a435821ad3b736310c2ed68945d05b50fb9d23aee0540c8cc"
+  digest = "1:107b2ac5dd768f2605128e603a358eec5681ee898559ea0361732fe2b7aa8a1f"
   name = "github.com/sirupsen/logrus"
-  packages = ["."]
+  packages = [
+    ".",
+    "hooks/test",
+  ]
   pruneopts = "UT"
   revision = "3e01752db0189b9157070a0e1668a620f9a85da2"
   version = "v1.0.6"
@@ -508,6 +511,7 @@
     "github.com/minio/minio-go/pkg/credentials",
     "github.com/pkg/errors",
     "github.com/sirupsen/logrus",
+    "github.com/sirupsen/logrus/hooks/test",
     "github.com/spf13/cobra",
     "github.com/stretchr/testify/assert",
     "k8s.io/apimachinery/pkg/api/errors",
