@@ -16,13 +16,25 @@ import (
 )
 
 var ErrWaitPIDTimeout = fmt.Errorf("Timed out waiting for PID to complete")
+var Unredacted = Redact(nil)
 
 type CmdOpts struct {
-	Timeout time.Duration
+	Timeout  time.Duration
+	Redactor func(text string) string
 }
 
 var DefaultCmdOpts = CmdOpts{
-	Timeout: time.Duration(0),
+	Timeout:  time.Duration(0),
+	Redactor: Unredacted,
+}
+
+func Redact(items []string) func(text string) string {
+	return func(text string) string {
+		for _, item := range items {
+			text = strings.Replace(text, item, "******", -1)
+		}
+		return text
+	}
 }
 
 // RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
@@ -30,9 +42,15 @@ var DefaultCmdOpts = CmdOpts{
 func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 
 	logCtx := log.WithFields(log.Fields{"execID": rand.RandString(5)})
+
+	redactor := DefaultCmdOpts.Redactor
+	if opts.Redactor != nil {
+		redactor = opts.Redactor
+	}
+
 	// log in a way we can copy-and-paste into a terminal
 	args := strings.Join(cmd.Args, " ")
-	logCtx.WithFields(log.Fields{"dir": cmd.Dir}).Info(args)
+	logCtx.WithFields(log.Fields{"dir": cmd.Dir}).Info(redactor(args))
 
 	var stdout bytes.Buffer
 	var stderr bytes.Buffer
@@ -65,22 +83,22 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	case <-timoutCh:
 		_ = cmd.Process.Kill()
 		output := stdout.String()
-		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
 		err = fmt.Errorf("`%v` timeout after %v", args, timeout)
-		logCtx.Error(err)
+		logCtx.Error(redactor(err.Error()))
 		return strings.TrimSuffix(output, "\n"), err
 	case err := <-done:
 		if err != nil {
 			output := stdout.String()
-			logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+			logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
 			err := fmt.Errorf("`%v` failed: %v", args, strings.TrimSpace(stderr.String()))
-			logCtx.Error(err)
+			logCtx.Error(redactor(err.Error()))
 			return strings.TrimSuffix(output, "\n"), err
 		}
 	}
 
 	output := stdout.String()
-	logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(output)
+	logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
 
 	return strings.TrimSuffix(output, "\n"), nil
 }
