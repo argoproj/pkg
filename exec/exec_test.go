@@ -41,7 +41,7 @@ func TestRunCommandTimeout(t *testing.T) {
 
 	output, err := RunCommand("sh", CmdOpts{Timeout: 500 * time.Millisecond}, "-c", "echo hello world && echo my-error >&2 && sleep 2")
 	assert.Equal(t, output, "hello world")
-	assert.EqualError(t, err, "`sh -c echo hello world && echo my-error >&2 && sleep 2` timeout after 500ms")
+	assert.EqualError(t, err, "`sh -c echo hello world && echo my-error >&2 && sleep 2` failed timeout after 500ms")
 
 	assert.Len(t, hook.Entries, 3)
 
@@ -59,7 +59,7 @@ func TestRunCommandTimeout(t *testing.T) {
 
 	entry = hook.Entries[2]
 	assert.Equal(t, log.ErrorLevel, entry.Level)
-	assert.Equal(t, "`sh -c echo hello world && echo my-error >&2 && sleep 2` timeout after 500ms", entry.Message)
+	assert.Equal(t, "`sh -c echo hello world && echo my-error >&2 && sleep 2` failed timeout after 500ms", entry.Message)
 	assert.Contains(t, entry.Data, "execID")
 }
 
