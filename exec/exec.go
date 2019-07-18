@@ -18,6 +18,28 @@ import (
 var ErrWaitPIDTimeout = fmt.Errorf("Timed out waiting for PID to complete")
 var Unredacted = Redact(nil)
 
+type CmdError struct {
+	Args   string
+	Stderr string
+	Cause  error
+}
+
+func (ce *CmdError) Error() string {
+	res := fmt.Sprintf("`%v` failed %v", ce.Args, ce.Cause)
+	if ce.Stderr != "" {
+		res = fmt.Sprintf("%s: %s", res, ce.Stderr)
+	}
+	return res
+}
+
+func (ce *CmdError) String() string {
+	return ce.Error()
+}
+
+func newCmdError(args string, cause error, stderr string) *CmdError {
+	return &CmdError{Args: args, Stderr: stderr, Cause: cause}
+}
+
 type CmdOpts struct {
 	Timeout  time.Duration
 	Redactor func(text string) string
@@ -84,14 +106,14 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 		_ = cmd.Process.Kill()
 		output := stdout.String()
 		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
-		err = fmt.Errorf("`%v` timeout after %v", args, timeout)
+		err = newCmdError(args, fmt.Errorf("timeout after %v", timeout), "")
 		logCtx.Error(redactor(err.Error()))
 		return strings.TrimSuffix(output, "\n"), err
 	case err := <-done:
 		if err != nil {
 			output := stdout.String()
 			logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
-			err := fmt.Errorf("`%v` failed %v: %v", args, err, strings.TrimSpace(stderr.String()))
+			err := newCmdError(args, err, strings.TrimSpace(stderr.String()))
 			logCtx.Error(redactor(err.Error()))
 			return strings.TrimSuffix(output, "\n"), err
 		}
