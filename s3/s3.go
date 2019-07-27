@@ -144,7 +144,7 @@ func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 	keyPrefix = filepath.Clean(keyPrefix) + "/"
 	doneCh := make(chan struct{})
 	defer close(doneCh)
-	objCh := s.minioClient.ListObjectsV2(bucket, keyPrefix, true, doneCh)
+	objCh := s.minioClient.ListObjects(bucket, keyPrefix, true, doneCh)
 	for obj := range objCh {
 		if obj.Err != nil {
 			return errors.WithStack(obj.Err)
@@ -164,7 +164,7 @@ func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 func (s *s3client) IsDirectory(bucket, key string) (bool, error) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
-	objCh := s.minioClient.ListObjectsV2(bucket, key, false, doneCh)
+	objCh := s.minioClient.ListObjects(bucket, key, false, doneCh)
 	for obj := range objCh {
 		if obj.Err != nil {
 			return false, errors.WithStack(obj.Err)
