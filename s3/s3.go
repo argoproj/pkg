@@ -38,6 +38,7 @@ type S3ClientOpts struct {
 	Secure    bool
 	AccessKey string
 	SecretKey string
+	Trace     bool
 }
 
 type s3client struct {
@@ -69,6 +70,9 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 	}
 	if err != nil {
 		return nil, errors.WithStack(err)
+	}
+	if opts.Trace {
+		minioClient.TraceOn(log.StandardLogger().Out)
 	}
 	s3cli.minioClient = minioClient
 	return &s3cli, nil
