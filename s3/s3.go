@@ -15,7 +15,6 @@ import (
 )
 
 const nullIAMEndpoint = ""
-const STS_ENDPOINT = " https://sts.amazonaws.com"
 
 type S3Client interface {
 	// PutFile puts a single file to a bucket at the specified key
@@ -61,8 +60,6 @@ func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, erro
 
 	creds := stscreds.NewCredentials(sess, opts.RoleARN)
 	value, err := creds.Get()
-	log.Println(err)
-	log.Println(value.ProviderName, value.SecretAccessKey, value.AccessKeyID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +79,7 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 		log.Infof("Creating minio client %s using assumed-role credentials", s3cli.RoleARN)
 		cred, err := GetAssumeRoleCredentials(opts)
 		if err != nil {
-			log.Error(err)
+			return nil, errors.WithStack(err)
 		}
 		minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
 
