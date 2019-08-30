@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/minio/minio-go"
 	"github.com/minio/minio-go/pkg/credentials"
 	"github.com/pkg/errors"
@@ -33,17 +35,35 @@ type S3Client interface {
 }
 
 type S3ClientOpts struct {
-	Endpoint  string
-	Region    string
-	Secure    bool
-	AccessKey string
-	SecretKey string
-	Trace     bool
+	Endpoint        string
+	Region          string
+	Secure          bool
+	AccessKey       string
+	SecretKey       string
+	Trace           bool
+	RoleARN         string
+	RoleSessionName string
 }
 
 type s3client struct {
 	S3ClientOpts
 	minioClient *minio.Client
+}
+
+// GetAssumeRoleCredentials gets Assumed role credentials
+func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
+
+	sess := session.Must(session.NewSession())
+
+	// Create the credentials from AssumeRoleProvider to assume the role
+	// referenced by the "myRoleARN" ARN. Prompt for MFA token from stdin.
+
+	creds := stscreds.NewCredentials(sess, opts.RoleARN)
+	value, err := creds.Get()
+	if err != nil {
+		return nil, err
+	}
+	return credentials.NewStaticV4(value.AccessKeyID, value.SecretAccessKey, value.SessionToken), nil
 }
 
 // NewS3Client instantiates a new S3 client object backed
@@ -55,7 +75,15 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 	s3cli.SecretKey = strings.TrimSpace(s3cli.SecretKey)
 	var minioClient *minio.Client
 	var err error
-	if s3cli.AccessKey != "" {
+	if s3cli.RoleARN != "" {
+		log.Infof("Creating minio client %s using assumed-role credentials", s3cli.RoleARN)
+		cred, err := GetAssumeRoleCredentials(opts)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
+
+	} else if s3cli.AccessKey != "" {
 		log.Infof("Creating minio client %s using static credentials", s3cli.Endpoint)
 		if s3cli.Region != "" {
 			minioClient, err = minio.NewWithRegion(
