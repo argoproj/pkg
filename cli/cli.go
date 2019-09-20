@@ -5,6 +5,7 @@ import (
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
+	"k8s.io/klog"
 
 	"github.com/argoproj/pkg/errors"
 )
@@ -18,7 +19,7 @@ func SetLogLevel(logLevel string) {
 
 // SetGLogLevel set the glog level for the k8s go-client
 func SetGLogLevel(glogLevel int) {
-	_ = flag.CommandLine.Parse([]string{})
-	_ = flag.Lookup("logtostderr").Value.Set("true")
-	_ = flag.Lookup("v").Value.Set(strconv.Itoa(glogLevel))
+	klog.InitFlags(nil)
+	_ = flag.Set("logtostderr", "true")
+	_ = flag.Set("v", strconv.Itoa(glogLevel))
 }
