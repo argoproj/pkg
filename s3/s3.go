@@ -82,6 +82,9 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 			return nil, errors.WithStack(err)
 		}
 		minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
 
 	} else if s3cli.AccessKey != "" {
 		log.Infof("Creating minio client %s using static credentials", s3cli.Endpoint)
