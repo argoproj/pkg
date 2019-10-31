@@ -91,6 +91,20 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:1d1cbf539d9ac35eb3148129f96be5537f1a1330cadcc7e3a83b4e72a59672a3"
+  name = "github.com/google/go-cmp"
+  packages = [
+    "cmp",
+    "cmp/internal/diff",
+    "cmp/internal/flags",
+    "cmp/internal/function",
+    "cmp/internal/value",
+  ]
+  pruneopts = "UT"
+  revision = "2d0692c2e9617365a95b295612ac0d4415ba4627"
+  version = "v0.3.1"
+
+[[projects]]
   branch = "master"
   digest = "1:3ee90c0d94da31b442dde97c99635aaafec68d0b8a3c12ee2075c6bdabeec6bb"
   name = "github.com/google/gofuzz"
@@ -401,8 +415,8 @@
   revision = "dcce3486da333605791aa8b98536ca01893194d6"
 
 [[projects]]
-  branch = "release-1.14"
-  digest = "1:d43bb672b3e811c5ea37b48a0a73bea7fcbcb348a45ce7ba349006145c76418d"
+  branch = "release-1.16"
+  digest = "1:8318bf2017e49d5f04a320e0c391ade8edd60351ce9b6a986daae0ea03b5f53a"
   name = "k8s.io/apimachinery"
   packages = [
     "pkg/api/errors",
@@ -446,11 +460,11 @@
     "third_party/forked/golang/reflect",
   ]
   pruneopts = "UT"
-  revision = "6a84e37a896db9780c75367af8d2ed2bb944022e"
+  revision = "72ed19daf4bb788ae595ae4103c404cb0fa09c84"
 
 [[projects]]
-  branch = "release-11.0"
-  digest = "1:e763322c5e340981b722eeea33a056a775e91d49b58e7572c03cb7a0f508c620"
+  branch = "release-12.0"
+  digest = "1:2f307598ad32a7d3c221dfd9e41248c56897dd8e796558dd33db836362f9ab83"
   name = "k8s.io/client-go"
   packages = [
     "discovery",
@@ -519,7 +533,7 @@
     "util/retry",
   ]
   pruneopts = "UT"
-  revision = "11646d1007e006f6f24995cb905c68bc62901c81"
+  revision = "5f2132fc4383659da452dba21a1c6c9890b0e062"
 
 [[projects]]
   digest = "1:c283ca5951eb7d723d3300762f96ff94c2ea11eaceb788279e2b7327f92e4f2a"
