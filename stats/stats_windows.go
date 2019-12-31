@@ -2,12 +2,12 @@
 
 package stats
 
-// RegisterStackDumper spawns a goroutine which dumps stack trace upon a SIGUSR1
+import log "github.com/sirupsen/logrus"
+
 func RegisterStackDumper() {
-	// NOOP
+	log.Warn("RegisterStackDumper is not supported on windows - noop")
 }
 
-// RegisterHeapDumper spawns a goroutine which dumps heap profile upon a SIGUSR2
 func RegisterHeapDumper(filePath string) {
-	// NOOP
+	log.Warn("RegisterHeapDumper is not supported on windows - noop")
 }
