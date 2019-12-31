@@ -184,6 +184,15 @@ func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 		if obj.Err != nil {
 			return errors.WithStack(obj.Err)
 		}
+		if strings.HasSuffix(obj.Key, "/") {
+			// When a dir is created through AWS S3 console, a nameless obj will be created
+			// automatically, its key will be {dir_name} + "/". This obj does not display in the
+			// console, but you can see it when using aws cli.
+			// If obj.Key ends with "/" means it's a dir obj, we need to skip it, otherwise it
+			// will be downloaded as a regular file with the same name as the dir, and it will
+			// creates error when downloading the files under the dir.
+			continue
+		}
 		relKeyPath := strings.TrimPrefix(obj.Key, keyPrefix)
 		localPath := filepath.Join(path, relKeyPath)
 		err := s.minioClient.FGetObject(bucket, obj.Key, localPath, minio.GetObjectOptions{})
