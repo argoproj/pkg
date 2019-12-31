@@ -15,8 +15,12 @@ windows-build:
 linux-build:
 	GOOS=linux go build ./...
 
+.PHONY: darwin-build
+darwin-build:
+	GOOS=darwin go build ./...
+
 .PHONY: build
-build: linux-build windows-build
+build: linux-build windows-build darwin-build
 
 .PHONY: lint
 lint: vendor build

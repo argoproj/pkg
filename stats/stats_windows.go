@@ -1,6 +1,11 @@
 package stats
 
-import log "github.com/sirupsen/logrus"
+import (
+	"runtime"
+	"time"
+
+	log "github.com/sirupsen/logrus"
+)
 
 // StartStatsTicker starts a goroutine which dumps stats at a specified interval
 func StartStatsTicker(d time.Duration) {
