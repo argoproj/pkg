@@ -61,7 +61,7 @@ func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, erro
 
 	var creds *awscreds.Credentials
 	if os.Getenv("AWS_ROLE_ARN") != "" && os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE") != "" {
-	creds = stscreds.NewWebIdentityCredentials(sess, os.Getenv("AWS_ROLE_ARN"), "argo-workflows", os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
+		creds = stscreds.NewWebIdentityCredentials(sess, os.Getenv("AWS_ROLE_ARN"), "argo-workflows", os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
 	} else {
 		creds = stscreds.NewCredentials(sess, opts.RoleARN)
 	}
