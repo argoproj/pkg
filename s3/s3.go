@@ -58,7 +58,12 @@ func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, erro
 	// Create the credentials from AssumeRoleProvider to assume the role
 	// referenced by the "myRoleARN" ARN. Prompt for MFA token from stdin.
 
-	creds := stscreds.NewCredentials(sess, opts.RoleARN)
+        var creds *awscreds.Credentials
+        if os.Getenv("AWS_ROLE_ARN") != "" && os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE") != "" {
+            creds = stscreds.NewWebIdentityCredentials(sess, os.Getenv("AWS_ROLE_ARN"), "argo-workflows", os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
+        } else {
+            creds = stscreds.NewCredentials(sess, opts.RoleARN)
+        }
 	value, err := creds.Get()
 	if err != nil {
 		return nil, err
@@ -75,7 +80,7 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 	s3cli.SecretKey = strings.TrimSpace(s3cli.SecretKey)
 	var minioClient *minio.Client
 	var err error
-	if s3cli.RoleARN != "" {
+	if s3cli.RoleARN != "" || (os.Getenv("AWS_ROLE_ARN") != "" && os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE") != "" ) {
 		log.Infof("Creating minio client %s using assumed-role credentials", s3cli.RoleARN)
 		cred, err := GetAssumeRoleCredentials(opts)
 		if err != nil {
