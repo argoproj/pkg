@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-        awscreds "github.com/aws/aws-sdk-go/aws/credentials"
+	awscreds "github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/minio/minio-go"
@@ -59,12 +59,12 @@ func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, erro
 	// Create the credentials from AssumeRoleProvider to assume the role
 	// referenced by the "myRoleARN" ARN. Prompt for MFA token from stdin.
 
-        var creds *awscreds.Credentials
-        if os.Getenv("AWS_ROLE_ARN") != "" && os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE") != "" {
-            creds = stscreds.NewWebIdentityCredentials(sess, os.Getenv("AWS_ROLE_ARN"), "argo-workflows", os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
-        } else {
-            creds = stscreds.NewCredentials(sess, opts.RoleARN)
-        }
+	var creds *awscreds.Credentials
+	if os.Getenv("AWS_ROLE_ARN") != "" && os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE") != "" {
+	creds = stscreds.NewWebIdentityCredentials(sess, os.Getenv("AWS_ROLE_ARN"), "argo-workflows", os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
+	} else {
+		creds = stscreds.NewCredentials(sess, opts.RoleARN)
+	}
 	value, err := creds.Get()
 	if err != nil {
 		return nil, err
