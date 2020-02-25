@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	awscreds "github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/minio/minio-go"
@@ -51,20 +50,25 @@ type s3client struct {
 	minioClient *minio.Client
 }
 
+// GetWebIdentityCredentials gets web identity credentials
+func GetWebIdentityCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
+	sess := session.Must(session.NewSession())
+
+	// If env vars are set from ISRA get credentials.
+	creds := stscreds.NewWebIdentityCredentials(sess, os.Getenv("AWS_ROLE_ARN"), "argo-workflows", os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
+	value, err := creds.Get()
+	if err != nil {
+		return nil, err
+	}
+	return credentials.NewStaticV4(value.AccessKeyID, value.SecretAccessKey, value.SessionToken), nil
+}
+
 // GetAssumeRoleCredentials gets Assumed role credentials
-func GetAwsCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
+func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 
 	sess := session.Must(session.NewSession())
 
-	var creds *awscreds.Credentials
-	if s3cli.RoleARN == "" && os.Getenv("AWS_ROLE_ARN") != "" && os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE") != "" {
-		// If env vars are set from ISRA get credentials.
-		creds = stscreds.NewWebIdentityCredentials(sess, os.Getenv("AWS_ROLE_ARN"), "argo-workflows", os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
-	} else {
-		// Create the credentials from AssumeRoleProvider to assume the role
-	        // referenced by the "myRoleARN" ARN. Prompt for MFA token from stdin.
-		creds = stscreds.NewCredentials(sess, opts.RoleARN)
-	}
+	creds := stscreds.NewCredentials(sess, opts.RoleARN)
 	value, err := creds.Get()
 	if err != nil {
 		return nil, err
@@ -81,9 +85,9 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 	s3cli.SecretKey = strings.TrimSpace(s3cli.SecretKey)
 	var minioClient *minio.Client
 	var err error
-	if s3cli.RoleARN != "" || (os.Getenv("AWS_ROLE_ARN") != "" && os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE") != "" ) {
+	if s3cli.RoleARN != "" {
 		log.Infof("Creating minio client %s using assumed-role credentials", s3cli.RoleARN)
-		cred, err := GetAwsCredentials(opts)
+		cred, err := GetAssumeRoleCredentials(opts)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
@@ -92,6 +96,16 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 			return nil, errors.WithStack(err)
 		}
 
+	} else if os.Getenv("AWS_ROLE_ARN") != "" && os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE") != "" {
+		log.Infof("Creating minio client %s using WebIdentityCredentials credentials", os.Getenv("AWS_ROLE_ARN"))
+		cred, err := GetWebIdentityCredentials(opts)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
 	} else if s3cli.AccessKey != "" {
 		log.Infof("Creating minio client %s using static credentials", s3cli.Endpoint)
 		if s3cli.Region != "" {
