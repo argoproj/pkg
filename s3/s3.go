@@ -95,17 +95,6 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-
-	} else if os.Getenv("AWS_ROLE_ARN") != "" && os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE") != "" {
-		log.Infof("Creating minio client %s using WebIdentityCredentials credentials", os.Getenv("AWS_ROLE_ARN"))
-		cred, err := GetWebIdentityCredentials(opts)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
 	} else if s3cli.AccessKey != "" {
 		log.Infof("Creating minio client %s using static credentials", s3cli.Endpoint)
 		if s3cli.Region != "" {
@@ -114,6 +103,16 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 		} else {
 			minioClient, err = minio.New(s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure)
 		}
+	} else if os.Getenv("AWS_ROLE_ARN") != "" && os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE") != "" {
+                log.Infof("Creating minio client %s using WebIdentityCredentials credentials", os.Getenv("AWS_ROLE_ARN"))
+                cred, err := GetWebIdentityCredentials(opts)
+                if err != nil {
+                        return nil, errors.WithStack(err)
+                }
+                minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
+                if err != nil {
+                        return nil, errors.WithStack(err)
+                }
 	} else {
 		log.Infof("Creating minio client %s using IAM role", s3cli.Endpoint)
 		credentials := credentials.NewIAM(nullIAMEndpoint)
