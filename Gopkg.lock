@@ -78,18 +78,23 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:4c0989ca0bcd10799064318923b9bc2db6b4d6338dd75f3f2d86c3511aaaf5cf"
+  digest = "1:727995ebcf0b117a1e575479f2ce41075b7097921a0f18f32c004e77e2d01d1f"
   name = "github.com/golang/protobuf"
   packages = [
+    "descriptor",
+    "jsonpb",
     "proto",
+    "protoc-gen-go/descriptor",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
+    "ptypes/struct",
     "ptypes/timestamp",
+    "ptypes/wrappers",
   ]
   pruneopts = "UT"
-  revision = "aa810b61a9c79d51363740d207bb46cf8e620ed5"
-  version = "v1.2.0"
+  revision = "5d5b4c10bd43f85e63bd9e4a3fa9b1ea2ef88af2"
+  version = "v1.3.4"
 
 [[projects]]
   digest = "1:1d1cbf539d9ac35eb3148129f96be5537f1a1330cadcc7e3a83b4e72a59672a3"
@@ -124,6 +129,18 @@
   pruneopts = "UT"
   revision = "7c663266750e7d82587642f65e60bc4083f1f84e"
   version = "v0.2.0"
+
+[[projects]]
+  digest = "1:c796348b8e05574396195c7032f082f8d915a7fa714c4effb0e4b978756ef439"
+  name = "github.com/grpc-ecosystem/grpc-gateway"
+  packages = [
+    "internal",
+    "runtime",
+    "utilities",
+  ]
+  pruneopts = "UT"
+  revision = "4c2cec4158f65aebe0290d3bee883b13f7b07c6f"
+  version = "v1.13.0"
 
 [[projects]]
   digest = "1:d15ee511aa0f56baacc1eb4c6b922fa1c03b38413b6be18166b996d82a0156ea"
@@ -355,6 +372,33 @@
   version = "v1.2.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:e40c3f4d56dd4a83e72eca914a52b6c106aeaa26b0795e9c0070609540ba1e12"
+  name = "google.golang.org/genproto"
+  packages = [
+    "googleapis/api/httpbody",
+    "googleapis/rpc/status",
+    "protobuf/field_mask",
+  ]
+  pruneopts = "UT"
+  revision = "46b91f19d98c8de158f0bac277af31327b3443d4"
+
+[[projects]]
+  digest = "1:fa9eeb6bd5201f6da4a7387b70f6ef7e9051d959ad40c2df0165cdc51fb11084"
+  name = "google.golang.org/grpc"
+  packages = [
+    "codes",
+    "connectivity",
+    "grpclog",
+    "internal",
+    "metadata",
+    "status",
+  ]
+  pruneopts = "UT"
+  revision = "f495f5b15ae7ccda3b38c53a1bfcde4c1a58a2bc"
+  version = "v1.27.1"
+
+[[projects]]
   digest = "1:2d1fbdc6777e5408cabeb02bf336305e724b925ff4546ded0fa8715a7267922a"
   name = "gopkg.in/inf.v0"
   packages = ["."]
@@ -571,6 +615,8 @@
     "github.com/aws/aws-sdk-go/aws/credentials/stscreds",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/dustin/go-humanize",
+    "github.com/golang/protobuf/proto",
+    "github.com/grpc-ecosystem/grpc-gateway/runtime",
     "github.com/minio/minio-go",
     "github.com/minio/minio-go/pkg/credentials",
     "github.com/pkg/errors",
@@ -578,6 +624,7 @@
     "github.com/sirupsen/logrus/hooks/test",
     "github.com/spf13/cobra",
     "github.com/stretchr/testify/assert",
+    "golang.org/x/net/context",
     "k8s.io/apimachinery/pkg/api/errors",
     "k8s.io/apimachinery/pkg/apis/meta/v1",
     "k8s.io/apimachinery/pkg/apis/meta/v1/unstructured",
