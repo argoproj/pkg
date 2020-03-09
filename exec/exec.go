@@ -106,15 +106,15 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 		_ = cmd.Process.Kill()
 		output := stdout.String()
 		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
-		err = newCmdError(args, fmt.Errorf("timeout after %v", timeout), "")
-		logCtx.Error(redactor(err.Error()))
+		err = newCmdError(redactor(args), fmt.Errorf("timeout after %v", timeout), "")
+		logCtx.Error(err.Error())
 		return strings.TrimSuffix(output, "\n"), err
 	case err := <-done:
 		if err != nil {
 			output := stdout.String()
 			logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
-			err := newCmdError(args, err, strings.TrimSpace(stderr.String()))
-			logCtx.Error(redactor(err.Error()))
+			err := newCmdError(redactor(args), errors.New(redactor(err.Error())), strings.TrimSpace(redactor(stderr.String())))
+			logCtx.Error(err.Error())
 			return strings.TrimSuffix(output, "\n"), err
 		}
 	}
