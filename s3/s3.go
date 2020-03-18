@@ -54,7 +54,7 @@ type s3client struct {
 
 // Get AWS credentials based on default order from aws SDK
 func GetAWSCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
-	sess := session.Must(session.NewSessionWithOptions(awsSession.Options{
+	sess := session.Must(session.NewSessionWithOptions(session.Options{
 		Config:            aws.Config{Region: aws.String(opts.Region)},
 		SharedConfigState: session.SharedConfigEnable,
 	}))
