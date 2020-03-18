@@ -52,12 +52,13 @@ type s3client struct {
 }
 
 // GetWebIdentityCredentials gets web identity credentials
-func GetWebIdentityCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
-	sess := session.Must(session.NewSession())
+func GetAWSCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
+        sess := session.Must(session.NewSessionWithOptions(awsSession.Options{
+		Config:            aws.Config{Region: aws.String(opts.Region)},
+		SharedConfigState: session.SharedConfigEnable,
+	}))
 
-	// If env vars are set from ISRA get credentials.
-	creds := stscreds.NewWebIdentityCredentials(sess, os.Getenv("AWS_ROLE_ARN"), "argo-workflows", os.Getenv("AWS_WEB_IDENTITY_TOKEN_FILE"))
-	value, err := creds.Get()
+	value, err := sess.Config.Credentials.Get()
 	if err != nil {
 		return nil, err
 	}
@@ -108,8 +109,8 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 			minioClient, err = minio.New(s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure)
 		}
 	} else if s3cli.UseIRSA == true {
-		log.Infof("Creating minio client %s using WebIdentityCredentials credentials", os.Getenv("AWS_ROLE_ARN"))
-		cred, err := GetWebIdentityCredentials(opts)
+		log.Infof("Creating minio client using GetAWSCredentials credentials")
+		cred, err := GetAWSCredentials(opts)
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
