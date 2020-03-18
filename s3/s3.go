@@ -108,7 +108,7 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 		} else {
 			minioClient, err = minio.New(s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure)
 		}
-	} else if s3cli.UseIRSA == true {
+	} else if s3cli.UseSDKCreds == true {
 		log.Infof("Creating minio client using GetAWSCredentials credentials")
 		cred, err := GetAWSCredentials(opts)
 		if err != nil {
