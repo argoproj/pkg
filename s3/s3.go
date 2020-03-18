@@ -43,11 +43,26 @@ type S3ClientOpts struct {
 	Trace           bool
 	RoleARN         string
 	RoleSessionName string
+	UseSDKCreds     bool
 }
 
 type s3client struct {
 	S3ClientOpts
 	minioClient *minio.Client
+}
+
+// Get AWS credentials based on default order from aws SDK
+func GetAWSCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
+	sess := session.Must(session.NewSessionWithOptions(awsSession.Options{
+		Config:            aws.Config{Region: aws.String(opts.Region)},
+		SharedConfigState: session.SharedConfigEnable,
+	}))
+
+	value, err := sess.Config.Credentials.Get()
+	if err != nil {
+		return nil, err
+	}
+	return credentials.NewStaticV4(value.AccessKeyID, value.SecretAccessKey, value.SessionToken), nil
 }
 
 // GetAssumeRoleCredentials gets Assumed role credentials
@@ -85,7 +100,6 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 		if err != nil {
 			return nil, errors.WithStack(err)
 		}
-
 	} else if s3cli.AccessKey != "" {
 		log.Infof("Creating minio client %s using static credentials", s3cli.Endpoint)
 		if s3cli.Region != "" {
@@ -93,6 +107,16 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 				s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure, s3cli.Region)
 		} else {
 			minioClient, err = minio.New(s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure)
+		}
+	} else if s3cli.UseSDKCreds == true {
+		log.Infof("Creating minio client using GetAWSCredentials credentials")
+		cred, err := GetAWSCredentials(opts)
+		if err != nil {
+			return nil, errors.WithStack(err)
+		}
+		minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
+		if err != nil {
+			return nil, errors.WithStack(err)
 		}
 	} else {
 		log.Infof("Creating minio client %s using IAM role", s3cli.Endpoint)
