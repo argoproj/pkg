@@ -76,7 +76,7 @@ func TestRunCommandExitErr(t *testing.T) {
 
 	output, err := RunCommand("sh", CmdOpts{Redactor: Redact([]string{"world"})}, "-c", "echo hello world && echo my-error >&2 && exit 1")
 	assert.Equal(t, "hello world", output)
-	assert.EqualError(t, err, "`sh -c echo hello world && echo my-error >&2 && exit 1` failed exit status 1: my-error")
+	assert.EqualError(t, err, "`sh -c echo hello ****** && echo my-error >&2 && exit 1` failed exit status 1: my-error")
 
 	assert.Len(t, hook.Entries, 3)
 
