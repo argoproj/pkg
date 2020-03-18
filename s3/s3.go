@@ -43,7 +43,7 @@ type S3ClientOpts struct {
 	Trace           bool
 	RoleARN         string
 	RoleSessionName string
-	UseIRSA         bool
+	UseSDKCreds     bool
 }
 
 type s3client struct {
@@ -51,9 +51,9 @@ type s3client struct {
 	minioClient *minio.Client
 }
 
-// GetWebIdentityCredentials gets web identity credentials
+// Get AWS credentials based on default order from aws SDK
 func GetAWSCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
-        sess := session.Must(session.NewSessionWithOptions(awsSession.Options{
+	sess := session.Must(session.NewSessionWithOptions(awsSession.Options{
 		Config:            aws.Config{Region: aws.String(opts.Region)},
 		SharedConfigState: session.SharedConfigEnable,
 	}))
