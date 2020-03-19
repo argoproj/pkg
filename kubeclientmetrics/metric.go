@@ -126,7 +126,9 @@ func handleCreate(r *http.Request) ResourceInfo {
 func (mrt *metricsRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
 	resp, roundTimeErr := mrt.roundTripper.RoundTrip(r)
 	info := parseRequest(r)
-	info.StatusCode = resp.StatusCode
+	if resp != nil {
+		info.StatusCode = resp.StatusCode
+	}
 	_ = mrt.inc(info)
 	return resp, roundTimeErr
 }
