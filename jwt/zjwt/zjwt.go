@@ -28,7 +28,7 @@ var magicNumber = "zJWT/v1"
 // - "never" - never use it - good for it goes wrong
 // - "" - when better
 // - "always" - always use it - good for forcing this on for testing
-var featureFlag = os.Getenv("ARGOCD_ZJWT_FEATURE_FLAG")
+var featureFlag = os.Getenv("ARGO_ZJWT_FEATURE_FLAG")
 
 // the smallest size JWT we'll compress, 3k chosen as cookies max out at 4k
 var minSize = 3000
