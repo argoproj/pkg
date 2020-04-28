@@ -10,6 +10,14 @@ import (
 	"github.com/argoproj/pkg/errors"
 )
 
+// SetLogTimestampFormat sets the format of log timestamps
+func SetLogTimestampFormat(format string) {
+	log.SetFormatter(&log.TextFormatter{
+		TimestampFormat: format,
+		FullTimestamp:   true,
+	})
+}
+
 // SetLogLevel parses and sets a logrus log level
 func SetLogLevel(logLevel string) {
 	level, err := log.ParseLevel(logLevel)
