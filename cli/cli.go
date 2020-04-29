@@ -11,10 +11,10 @@ import (
 )
 
 // SetLogTimestampFormat sets the format of log timestamps
-func SetLogTimestampFormat(format string) {
+func SetLogTimestampFormat(format string, full bool) {
 	log.SetFormatter(&log.TextFormatter{
 		TimestampFormat: format,
-		FullTimestamp:   true,
+		FullTimestamp:   full,
 	})
 }
 
