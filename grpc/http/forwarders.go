@@ -123,6 +123,66 @@ func newMarshaler(req *http.Request, isSSE bool) runtime.Marshaler {
 	return &messageMarshaler{isSSE: isSSE, fields: fields, exclude: exclude}
 }
 
+type StreamForwarderFunc func(
+	ctx context.Context,
+	mux *runtime.ServeMux,
+	marshaler runtime.Marshaler,
+	w http.ResponseWriter,
+	req *http.Request,
+	recv func() (proto.Message, error),
+	opts ...func(context.Context, http.ResponseWriter, proto.Message) error,
+)
+
+func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamForwarderFunc {
+	return func(
+		ctx context.Context,
+		mux *runtime.ServeMux,
+		marshaler runtime.Marshaler,
+		w http.ResponseWriter,
+		req *http.Request,
+		recv func() (proto.Message, error),
+		opts ...func(context.Context, http.ResponseWriter, proto.Message) error,
+	) {
+		isSSE := req.Header.Get("Accept") == "text/event-stream"
+		if isSSE {
+			w.Header().Set("Content-Type", "text/event-stream")
+			w.Header().Set("Transfer-Encoding", "chunked")
+			w.Header().Set("X-Content-Type-Options", "nosniff")
+		}
+		dataByKey := make(map[string][]byte)
+		m := newMarshaler(req, isSSE)
+		if messageKey != nil {
+			oldRecv := recv
+			recv = func() (proto.Message, error) {
+				for {
+					if ctx.Err() != nil {
+						return nil, ctx.Err()
+					}
+
+					msg, err := oldRecv()
+					if err != nil {
+						return nil, err
+					}
+					key, err := messageKey(msg)
+					if err != nil {
+						return nil, err
+					}
+					data, err := m.Marshal(map[string]proto.Message{"result": msg})
+					if err != nil {
+						return nil, err
+					}
+					prevData, ok := dataByKey[key]
+					if !ok || string(prevData) != string(data) {
+						dataByKey[key] = data
+						return msg, nil
+					}
+				}
+			}
+		}
+		runtime.ForwardResponseStream(ctx, mux, m, w, req, recv, opts...)
+	}
+}
+
 var (
 	// UnaryForwarder serializes protobuf message to JSON and removes fields using query parameter `fields`.
 	// The `fields` parameter example:
@@ -141,21 +201,5 @@ var (
 	}
 
 	// StreamForwarder serializes protobuf message to JSON and removes fields using query parameter `fields`
-	StreamForwarder = func(
-		ctx context.Context,
-		mux *runtime.ServeMux,
-		marshaler runtime.Marshaler,
-		w http.ResponseWriter,
-		req *http.Request,
-		recv func() (proto.Message, error),
-		opts ...func(context.Context, http.ResponseWriter, proto.Message) error,
-	) {
-		isSSE := req.Header.Get("Accept") == "text/event-stream"
-		if isSSE {
-			w.Header().Set("Content-Type", "text/event-stream")
-			w.Header().Set("Transfer-Encoding", "chunked")
-			w.Header().Set("X-Content-Type-Options", "nosniff")
-		}
-		runtime.ForwardResponseStream(ctx, mux, newMarshaler(req, isSSE), w, req, recv, opts...)
-	}
+	StreamForwarder = NewStreamForwarder(nil)
 )
