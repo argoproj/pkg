@@ -25,6 +25,7 @@ darwin-build:
 
 .PHONY: lint
 lint: build
+	go mod tidy
 	# golangci-lint does not do a good job of formatting imports
 	goimports -local github.com/argoproj/pkg -w `find . ! -path './vendor/*' -type f -name '*.go'`
 	GOGC=$(LINT_GOGC) golangci-lint run --fix --verbose --concurrency $(LINT_CONCURRENCY) --deadline $(LINT_DEADLINE)
