@@ -19,6 +19,8 @@ import (
 const nullIAMEndpoint = ""
 
 type S3Client interface {
+	// PutObject puts an object into the bucket in a memory efficient manner.
+	// objectSize maybe -1 if the size is unknown.
 	PutObject(bucket, key string, reader io.Reader, objectSize int64) error
 
 	// PutFile puts a single file to a bucket at the specified key
@@ -28,6 +30,7 @@ type S3Client interface {
 	// a separate key in the bucket.
 	PutDirectory(bucket, key, path string) error
 
+	// GetObject gets an object from the bucket in a memory efficient manner.
 	GetObject(bucket, key string) (io.Reader, error)
 
 	// GetFile downloads a file to a local file path
