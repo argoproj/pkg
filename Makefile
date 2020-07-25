@@ -4,9 +4,6 @@ LINT_CONCURRENCY?=8
 # Set timeout for linter
 LINT_DEADLINE?=1m0s
 
-vendor: Gopkg.toml
-	dep ensure -v -vendor-only
-
 .PHONY: windows-build
 windows-build:
 	GOOS=windows go build ./...
