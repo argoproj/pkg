@@ -3,7 +3,7 @@ module github.com/argoproj/pkg
 go 1.13
 
 require (
-	github.com/aws/aws-sdk-go v1.25.50
+	github.com/aws/aws-sdk-go v1.33.7
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-ini/ini v1.57.0 // indirect
 	github.com/golang/protobuf v1.3.4
@@ -14,11 +14,11 @@ require (
 	github.com/inconshreveable/mousetrap v1.0.0 // indirect
 	github.com/minio/minio-go v6.0.14+incompatible
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
-	github.com/pkg/errors v0.8.0
+	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.0.6
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/cobra v0.0.3
-	github.com/stretchr/testify v1.3.0
+	github.com/stretchr/testify v1.5.1
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 	golang.org/x/text v0.3.3 // indirect
