@@ -1,7 +1,6 @@
 package s3
 
 import (
-	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -19,19 +18,12 @@ import (
 const nullIAMEndpoint = ""
 
 type S3Client interface {
-	// PutObject puts an object into the bucket in a memory efficient manner.
-	// objectSize maybe -1 if the size is unknown.
-	PutObject(bucket, key string, reader io.Reader, objectSize int64) error
-
 	// PutFile puts a single file to a bucket at the specified key
 	PutFile(bucket, key, path string) error
 
 	// PutDirectory puts a complete directory into a bucket key prefix, with each file in the directory
 	// a separate key in the bucket.
 	PutDirectory(bucket, key, path string) error
-
-	// GetObject gets an object from the bucket in a memory efficient manner.
-	GetObject(bucket, key string) (io.Reader, error)
 
 	// GetFile downloads a file to a local file path
 	GetFile(bucket, key, path string) error
@@ -142,15 +134,6 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 	return &s3cli, nil
 }
 
-func (s *s3client) PutObject(bucket, key string, reader io.Reader, objectSize int64) error {
-	log.Infof("Saving from reader (sized %v) to s3 (endpoint: %s, bucket: %s, key: %s)", objectSize, s.Endpoint, bucket, key)
-	_, err := s.minioClient.PutObject(bucket, key, reader, objectSize, minio.PutObjectOptions{})
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
-}
-
 // PutFile puts a single file to a bucket at the specified key
 func (s *s3client) PutFile(bucket, key, path string) error {
 	log.Infof("Saving from %s to s3 (endpoint: %s, bucket: %s, key: %s)", path, s.Endpoint, bucket, key)
@@ -159,7 +142,6 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 	if err != nil {
 		return errors.WithStack(err)
 	}
-
 	return nil
 
 }
@@ -204,16 +186,6 @@ func (s *s3client) PutDirectory(bucket, key, path string) error {
 		}
 	}
 	return nil
-}
-
-// GetFile downloads a file to a local file path
-func (s *s3client) GetObject(bucket, key string) (io.Reader, error) {
-	log.Infof("Getting from s3 (endpoint: %s, bucket: %s, key: %s) ", s.Endpoint, bucket, key)
-	object, err := s.minioClient.GetObject(bucket, key, minio.GetObjectOptions{})
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	return object, nil
 }
 
 // GetFile downloads a file to a local file path
