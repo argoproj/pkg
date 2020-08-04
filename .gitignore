@@ -2,6 +2,7 @@
 .idea/
 .DS_Store
 dist/
+vendor/
 # delve debug binaries
 debug.test
 coverage.out

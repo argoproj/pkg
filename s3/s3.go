@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"context"
 	"os"
 	"path"
 	"path/filepath"
@@ -9,8 +10,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/minio/minio-go"
-	"github.com/minio/minio-go/pkg/credentials"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
@@ -50,6 +51,7 @@ type S3ClientOpts struct {
 type s3client struct {
 	S3ClientOpts
 	minioClient *minio.Client
+	ctx         context.Context
 }
 
 // Get AWS credentials based on default order from aws SDK
@@ -82,8 +84,25 @@ func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, erro
 	return credentials.NewStaticV4(value.AccessKeyID, value.SecretAccessKey, value.SessionToken), nil
 }
 
+func GetCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
+	if opts.AccessKey != "" && opts.SecretKey != "" {
+		log.Infof("Creating minio client %s using static credentials", opts.Endpoint)
+		return credentials.NewStaticV4(opts.AccessKey, opts.SecretKey, ""), nil
+	} else if opts.RoleARN != "" {
+		log.Infof("Creating minio client %s using assumed-role credentials", opts.RoleARN)
+		opts := credentials.STSAssumeRoleOptions{
+			RoleARN: opts.RoleARN,
+		}
+		return credentials.NewSTSAssumeRole( "sts.amazonaws.com", opts)
+	} else if opts.UseSDKCreds {
+		return GetAWSCredentials(opts)
+	} else {
+		return credentials.NewIAM(nullIAMEndpoint), nil
+	}
+}
+
 // NewS3Client instantiates a new S3 client object backed
-func NewS3Client(opts S3ClientOpts) (S3Client, error) {
+func NewS3Client(opts S3ClientOpts, ctx context.Context) (S3Client, error) {
 	s3cli := s3client{
 		S3ClientOpts: opts,
 	}
@@ -91,45 +110,55 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 	s3cli.SecretKey = strings.TrimSpace(s3cli.SecretKey)
 	var minioClient *minio.Client
 	var err error
-	if s3cli.RoleARN != "" {
-		log.Infof("Creating minio client %s using assumed-role credentials", s3cli.RoleARN)
-		cred, err := GetAssumeRoleCredentials(opts)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-	} else if s3cli.AccessKey != "" {
-		log.Infof("Creating minio client %s using static credentials", s3cli.Endpoint)
-		if s3cli.Region != "" {
-			minioClient, err = minio.NewWithRegion(
-				s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure, s3cli.Region)
-		} else {
-			minioClient, err = minio.New(s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure)
-		}
-	} else if s3cli.UseSDKCreds == true {
-		log.Infof("Creating minio client using GetAWSCredentials credentials")
-		cred, err := GetAWSCredentials(opts)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-	} else {
-		log.Infof("Creating minio client %s using IAM role", s3cli.Endpoint)
-		credentials := credentials.NewIAM(nullIAMEndpoint)
-		minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, credentials, s3cli.Secure, s3cli.Region)
+	//if s3cli.RoleARN != "" {
+	//	log.Infof("Creating minio client %s using assumed-role credentials", s3cli.RoleARN)
+	//	cred, err := GetAssumeRoleCredentials(opts)
+	//	if err != nil {
+	//		return nil, errors.WithStack(err)
+	//	}
+	//	opts := &minio.Options{Creds:cred, Secure: s3cli.Secure, Region:s3cli.Region}
+	//	minioClient, err = minio.New(s3cli.Endpoint, opts)
+	//	if err != nil {
+	//		return nil, errors.WithStack(err)
+	//	}
+	//} else if s3cli.AccessKey != "" {
+	//	log.Infof("Creating minio client %s using static credentials", s3cli.Endpoint)
+	//	if s3cli.Region != "" {
+	//		minioClient, err = minio.NewWithRegion(
+	//			s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure, s3cli.Region)
+	//	} else {
+	//		minioClient, err = minio.New(s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure)
+	//	}
+	//} else if s3cli.UseSDKCreds == true {
+	//	log.Infof("Creating minio client using GetAWSCredentials credentials")
+	//	cred, err := GetAWSCredentials(opts)
+	//	if err != nil {
+	//		return nil, errors.WithStack(err)
+	//	}
+	//	minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
+	//	if err != nil {
+	//		return nil, errors.WithStack(err)
+	//	}
+	//} else {
+	//	log.Infof("Creating minio client %s using IAM role", s3cli.Endpoint)
+	//	credentials := credentials.NewIAM(nullIAMEndpoint)
+	//	minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, credentials, s3cli.Secure, s3cli.Region)
+	//}
+
+	credentials, err := GetCredentials(opts)
+	if err != nil {
+		return nil, errors.WithStack(err)
 	}
+
+	minioOpts := &minio.Options{Creds: credentials, Secure: s3cli.Secure, Region: s3cli.Region}
+	minioClient, err = minio.New(s3cli.Endpoint, minioOpts)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
 	if opts.Trace {
 		minioClient.TraceOn(log.StandardLogger().Out)
 	}
+	s3cli.ctx = ctx
 	s3cli.minioClient = minioClient
 	return &s3cli, nil
 }
@@ -138,7 +167,7 @@ func NewS3Client(opts S3ClientOpts) (S3Client, error) {
 func (s *s3client) PutFile(bucket, key, path string) error {
 	log.Infof("Saving from %s to s3 (endpoint: %s, bucket: %s, key: %s)", path, s.Endpoint, bucket, key)
 	// NOTE: minio will detect proper mime-type based on file extension
-	_, err := s.minioClient.FPutObject(bucket, key, path, minio.PutObjectOptions{})
+	_, err := s.minioClient.FPutObject(s.ctx, bucket, key, path, minio.PutObjectOptions{})
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -191,7 +220,7 @@ func (s *s3client) PutDirectory(bucket, key, path string) error {
 // GetFile downloads a file to a local file path
 func (s *s3client) GetFile(bucket, key, path string) error {
 	log.Infof("Getting from s3 (endpoint: %s, bucket: %s, key: %s) to %s", s.Endpoint, bucket, key, path)
-	err := s.minioClient.FGetObject(bucket, key, path, minio.GetObjectOptions{})
+	err := s.minioClient.FGetObject(s.ctx, bucket, key, path, minio.GetObjectOptions{})
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -204,7 +233,11 @@ func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 	keyPrefix = filepath.Clean(keyPrefix) + "/"
 	doneCh := make(chan struct{})
 	defer close(doneCh)
-	objCh := s.minioClient.ListObjects(bucket, keyPrefix, true, doneCh)
+	listOpts := minio.ListObjectsOptions{
+		Prefix:    keyPrefix,
+		Recursive: true,
+	}
+	objCh := s.minioClient.ListObjects(s.ctx, bucket, listOpts)
 	for obj := range objCh {
 		if obj.Err != nil {
 			return errors.WithStack(obj.Err)
@@ -220,7 +253,7 @@ func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 		}
 		relKeyPath := strings.TrimPrefix(obj.Key, keyPrefix)
 		localPath := filepath.Join(path, relKeyPath)
-		err := s.minioClient.FGetObject(bucket, obj.Key, localPath, minio.GetObjectOptions{})
+		err := s.minioClient.FGetObject(s.ctx, bucket, obj.Key, localPath, minio.GetObjectOptions{})
 		if err != nil {
 			return errors.WithStack(err)
 		}
@@ -233,7 +266,11 @@ func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 func (s *s3client) IsDirectory(bucket, key string) (bool, error) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
-	objCh := s.minioClient.ListObjects(bucket, key, false, doneCh)
+	listOpts := minio.ListObjectsOptions{
+		Prefix:    key,
+		Recursive: false,
+	}
+	objCh := s.minioClient.ListObjects(s.ctx, bucket, listOpts)
 	for obj := range objCh {
 		if obj.Err != nil {
 			return false, errors.WithStack(obj.Err)
