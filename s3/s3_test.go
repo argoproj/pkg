@@ -29,15 +29,14 @@ func TestNewS3Client(t *testing.T) {
 	// 	s3client.minioClient
 }
 
-
 // TestNewS3Client tests the s3 construtor
 func TestNewS3ClientWithDiff(t *testing.T) {
 	t.Run("IAMRole", func(t *testing.T) {
 		opts := S3ClientOpts{
-			Endpoint:  "foo.com",
-			Region:    "us-south-3",
-			Secure:    false,
-			Trace:     true,
+			Endpoint: "foo.com",
+			Region:   "us-south-3",
+			Secure:   false,
+			Trace:    true,
 		}
 		s3If, err := NewS3Client(opts, context.Background())
 		assert.NoError(t, err)
@@ -49,11 +48,11 @@ func TestNewS3ClientWithDiff(t *testing.T) {
 	})
 	t.Run("AssumeIAMRole", func(t *testing.T) {
 		opts := S3ClientOpts{
-			Endpoint:  "foo.com",
-			Region:    "us-south-3",
-			Secure:    false,
-			Trace:     true,
-			RoleARN: "testARN",
+			Endpoint: "foo.com",
+			Region:   "us-south-3",
+			Secure:   false,
+			Trace:    true,
+			RoleARN:  "testARN",
 		}
 		s3If, err := NewS3Client(opts, context.Background())
 		assert.NoError(t, err)

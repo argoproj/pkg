@@ -90,13 +90,12 @@ func GetCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 		return credentials.NewStaticV4(opts.AccessKey, opts.SecretKey, ""), nil
 	} else if opts.RoleARN != "" {
 		log.Infof("Creating minio client %s using assumed-role credentials", opts.RoleARN)
-		opts := credentials.STSAssumeRoleOptions{
-			RoleARN: opts.RoleARN,
-		}
-		return credentials.NewSTSAssumeRole( "sts.amazonaws.com", opts)
+		return GetAssumeRoleCredentials(opts)
 	} else if opts.UseSDKCreds {
+		log.Infof("Creating minio client using AWS SDK credentials")
 		return GetAWSCredentials(opts)
 	} else {
+		log.Infof("Creating minio client %s using IAM role")
 		return credentials.NewIAM(nullIAMEndpoint), nil
 	}
 }
