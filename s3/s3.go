@@ -95,7 +95,7 @@ func GetCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 		log.Infof("Creating minio client using AWS SDK credentials")
 		return GetAWSCredentials(opts)
 	} else {
-		log.Infof("Creating minio client %s using IAM role")
+		log.Infof("Creating minio client using IAM role")
 		return credentials.NewIAM(nullIAMEndpoint), nil
 	}
 }
@@ -109,40 +109,6 @@ func NewS3Client(opts S3ClientOpts, ctx context.Context) (S3Client, error) {
 	s3cli.SecretKey = strings.TrimSpace(s3cli.SecretKey)
 	var minioClient *minio.Client
 	var err error
-	//if s3cli.RoleARN != "" {
-	//	log.Infof("Creating minio client %s using assumed-role credentials", s3cli.RoleARN)
-	//	cred, err := GetAssumeRoleCredentials(opts)
-	//	if err != nil {
-	//		return nil, errors.WithStack(err)
-	//	}
-	//	opts := &minio.Options{Creds:cred, Secure: s3cli.Secure, Region:s3cli.Region}
-	//	minioClient, err = minio.New(s3cli.Endpoint, opts)
-	//	if err != nil {
-	//		return nil, errors.WithStack(err)
-	//	}
-	//} else if s3cli.AccessKey != "" {
-	//	log.Infof("Creating minio client %s using static credentials", s3cli.Endpoint)
-	//	if s3cli.Region != "" {
-	//		minioClient, err = minio.NewWithRegion(
-	//			s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure, s3cli.Region)
-	//	} else {
-	//		minioClient, err = minio.New(s3cli.Endpoint, s3cli.AccessKey, s3cli.SecretKey, s3cli.Secure)
-	//	}
-	//} else if s3cli.UseSDKCreds == true {
-	//	log.Infof("Creating minio client using GetAWSCredentials credentials")
-	//	cred, err := GetAWSCredentials(opts)
-	//	if err != nil {
-	//		return nil, errors.WithStack(err)
-	//	}
-	//	minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, cred, s3cli.Secure, s3cli.Region)
-	//	if err != nil {
-	//		return nil, errors.WithStack(err)
-	//	}
-	//} else {
-	//	log.Infof("Creating minio client %s using IAM role", s3cli.Endpoint)
-	//	credentials := credentials.NewIAM(nullIAMEndpoint)
-	//	minioClient, err = minio.NewWithCredentials(s3cli.Endpoint, credentials, s3cli.Secure, s3cli.Region)
-	//}
 
 	credentials, err := GetCredentials(opts)
 	if err != nil {
