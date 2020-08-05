@@ -3,7 +3,7 @@ module github.com/argoproj/pkg
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.33.12
+	github.com/aws/aws-sdk-go v1.33.16
 	github.com/dustin/go-humanize v1.0.0
 	github.com/go-ini/ini v1.57.0 // indirect
 	github.com/golang/protobuf v1.3.3
@@ -15,9 +15,9 @@ require (
 	github.com/spf13/cobra v1.0.0
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
-	k8s.io/api v1.17.8
-	k8s.io/apimachinery v1.17.8
-	k8s.io/client-go v1.17.8
+	k8s.io/api v0.17.8
+	k8s.io/apimachinery v0.17.8
+	k8s.io/client-go v0.17.8
 	k8s.io/klog v1.0.0
 )
 
