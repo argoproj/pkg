@@ -101,7 +101,7 @@ func GetCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 }
 
 // NewS3Client instantiates a new S3 client object backed
-func NewS3Client(opts S3ClientOpts, ctx context.Context) (S3Client, error) {
+func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 	s3cli := s3client{
 		S3ClientOpts: opts,
 	}

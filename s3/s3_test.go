@@ -38,7 +38,7 @@ func TestNewS3ClientWithDiff(t *testing.T) {
 			Secure:   false,
 			Trace:    true,
 		}
-		s3If, err := NewS3Client(opts, context.Background())
+		s3If, err := NewS3Client(context.Background(), opts)
 		assert.NoError(t, err)
 		s3cli := s3If.(*s3client)
 		assert.Equal(t, opts.Endpoint, s3cli.Endpoint)
@@ -54,7 +54,7 @@ func TestNewS3ClientWithDiff(t *testing.T) {
 			Trace:    true,
 			RoleARN:  "testARN",
 		}
-		s3If, err := NewS3Client(opts, context.Background())
+		s3If, err := NewS3Client(context.Background(), opts)
 		assert.NoError(t, err)
 		s3cli := s3If.(*s3client)
 		assert.Equal(t, opts.Endpoint, s3cli.Endpoint)
