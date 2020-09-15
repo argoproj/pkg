@@ -146,7 +146,7 @@ type uploadTask struct {
 }
 
 func generatePutTasks(keyPrefix, rootPath string) chan uploadTask {
-	rootPath = filepath.Clean(rootPath) + "/"
+	rootPath = filepath.Clean(rootPath) + string(os.PathSeparator)
 	uploadTasks := make(chan uploadTask)
 	visit := func(localPath string, fi os.FileInfo, err error) error {
 		relPath := strings.TrimPrefix(localPath, rootPath)
