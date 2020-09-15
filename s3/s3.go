@@ -196,6 +196,10 @@ func (s *s3client) GetFile(bucket, key, path string) error {
 func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 	log.Infof("Getting directory from s3 (endpoint: %s, bucket: %s, key: %s) to %s", s.Endpoint, bucket, keyPrefix, path)
 	keyPrefix = filepath.Clean(keyPrefix) + "/"
+	if os.PathSeparator == '\\' {
+		keyPrefix = strings.ReplaceAll(keyPrefix, "\\", "/")
+	}
+
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 	listOpts := minio.ListObjectsOptions{
