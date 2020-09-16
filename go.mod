@@ -5,7 +5,6 @@ go 1.14
 require (
 	github.com/aws/aws-sdk-go v1.33.16
 	github.com/dustin/go-humanize v1.0.0
-	github.com/go-ini/ini v1.57.0 // indirect
 	github.com/golang/protobuf v1.3.3
 	github.com/grpc-ecosystem/grpc-gateway v1.14.6
 	github.com/minio/minio-go/v7 v7.0.2
