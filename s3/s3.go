@@ -34,6 +34,12 @@ type S3Client interface {
 
 	// IsDirectory tests if the key is acting like a s3 directory
 	IsDirectory(bucket, key string) (bool, error)
+
+	// BucketExists returns whether a bucket exists
+	BucketExists(bucket string) (bool, error)
+
+	// MakeBucket creates a bucket with name bucketName and options opts
+	MakeBucket(bucketName string, opts minio.MakeBucketOptions) error
 }
 
 type S3ClientOpts struct {
@@ -138,6 +144,18 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 	}
 	return nil
 
+}
+
+func (s *s3client) BucketExists(bucketName string) (bool, error) {
+	log.Infof("Checking if bucket %s exists.", bucketName)
+	result, err := s.minioClient.BucketExists(s.ctx, bucketName)
+	return result, errors.WithStack(err)
+}
+
+func (s *s3client) MakeBucket(bucketName string, opts minio.MakeBucketOptions) error {
+	log.Infof("Creating bucket: %s. (Region: %s, ObjectLocking: %t)", bucketName, opts.Region, opts.ObjectLocking)
+	err := s.minioClient.MakeBucket(s.ctx, bucketName, opts)
+	return errors.WithStack(err)
 }
 
 type uploadTask struct {
