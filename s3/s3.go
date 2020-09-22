@@ -146,14 +146,12 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 
 }
 
-// BucketExists returns whether a bucket exists
 func (s *s3client) BucketExists(bucketName string) (bool, error) {
 	log.Infof("Checking if bucket %s exists.", bucketName)
 	result, err := s.minioClient.BucketExists(s.ctx, bucketName)
 	return result, errors.WithStack(err)
 }
 
-// MakeBucket creates a bucket with name bucketName and options opts
 func (s *s3client) MakeBucket(bucketName string, opts minio.MakeBucketOptions) error {
 	log.Infof("Creating bucket: %s. (Region: %s, ObjectLocking: %t)", bucketName, opts.Region, opts.ObjectLocking)
 	err := s.minioClient.MakeBucket(s.ctx, bucketName, opts)
