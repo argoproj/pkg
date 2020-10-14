@@ -6,11 +6,15 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
 )
+
+var KeepalivePingDuration time.Duration
 
 type messageMarshaler struct {
 	fields  map[string]interface{}
@@ -143,7 +147,12 @@ func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamFo
 		recv func() (proto.Message, error),
 		opts ...func(context.Context, http.ResponseWriter, proto.Message) error,
 	) {
-		isSSE := req.Header.Get("Accept") == "text/event-stream"
+		var isSSE bool
+		reqAccept := req.Header.Get("Accept")
+		if reqAccept == "text/event-stream" || reqAccept == "*/*" {
+			isSSE = true
+		}
+
 		if isSSE {
 			w.Header().Set("Content-Type", "text/event-stream")
 			w.Header().Set("Transfer-Encoding", "chunked")
@@ -151,6 +160,29 @@ func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamFo
 		}
 		dataByKey := make(map[string][]byte)
 		m := newMarshaler(req, isSSE)
+		if KeepalivePingDuration != 0 {
+			ticker := time.NewTicker(KeepalivePingDuration)
+			go func() {
+				for {
+					select {
+					case <-ticker.C:
+						data, _ := m.Marshal(map[string]string{"result": "PING"})
+						_, err := w.Write(data)
+						if err != nil {
+							log.Infof("Cannot send pings - %s", err)
+						}
+						if f, ok := w.(http.Flusher); !ok {
+							log.Infof("Flush not supported in %T", w)
+						} else {
+							f.Flush()
+						}
+					case <-ctx.Done():
+						ticker.Stop()
+						return
+					}
+				}
+			}()
+		}
 		if messageKey != nil {
 			oldRecv := recv
 			recv = func() (proto.Message, error) {
