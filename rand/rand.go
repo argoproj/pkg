@@ -2,6 +2,7 @@ package rand
 
 import (
 	"math/rand"
+	"sync"
 	"time"
 )
 
@@ -12,6 +13,7 @@ const (
 	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
 
+var srcMutex = sync.Mutex{}
 var src = rand.NewSource(time.Now().UnixNano())
 
 // RandString returns a cryptographically-secure pseudo-random alpha-numeric string of a given length
@@ -21,6 +23,9 @@ func RandString(n int) string {
 
 // RandStringCharset generates, from a given charset, a cryptographically-secure pseudo-random string of a given length
 func RandStringCharset(n int, charset string) string {
+	srcMutex.Lock()
+	defer srcMutex.Unlock()
+
 	b := make([]byte, n)
 	// A src.Int63() generates 63 random bits, enough for letterIdxMax characters!
 	for i, cache, remain := n-1, src.Int63(), letterIdxMax; i >= 0; {
