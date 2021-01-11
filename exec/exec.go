@@ -27,7 +27,7 @@ type CmdError struct {
 func (ce *CmdError) Error() string {
 	res := fmt.Sprintf("`%v` failed %v", ce.Args, ce.Cause)
 	if ce.Stderr != "" {
-		res = fmt.Sprintf("%s: %s", res, ce.Stderr)
+		res = fmt.Sprintf("stderr: %s, cmd: %s", ce.Stderr, res)
 	}
 	return res
 }
