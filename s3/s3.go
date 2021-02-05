@@ -218,7 +218,7 @@ func (s *s3client) GetFile(bucket, key, path string) error {
 // GetDirectory downloads a s3 directory to a local path
 func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 	log.Infof("Getting directory from s3 (endpoint: %s, bucket: %s, key: %s) to %s", s.Endpoint, bucket, keyPrefix, path)
-	
+
 	keys, err := s.ListDirectory(bucket, keyPrefix)
 	if err != nil {
 		return err
@@ -265,7 +265,7 @@ func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 	listOpts := minio.ListObjectsOptions{
-		Prefix:    keyPrefix,
+		//Prefix:    keyPrefix,
 		Recursive: true,
 	}
 	var out []string
