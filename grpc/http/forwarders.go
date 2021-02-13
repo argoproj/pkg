@@ -5,12 +5,22 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
+	"sync"
+	"time"
 
+	"github.com/felixge/httpsnoop"
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
+
+	"github.com/argoproj/pkg/ticker"
 )
+
+type recvFn func() (proto.Message, error)
+type tickerFac func(time.Duration) ticker.Ticker
 
 type messageMarshaler struct {
 	fields  map[string]interface{}
@@ -133,6 +143,75 @@ type StreamForwarderFunc func(
 	opts ...func(context.Context, http.ResponseWriter, proto.Message) error,
 )
 
+func writeKeepalive(w http.ResponseWriter, mut *sync.Mutex) {
+	mut.Lock()
+	defer mut.Unlock()
+
+	// Per https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation,
+	// lines that start with a `:` must be ignored by the client.
+	_, err := w.Write([]byte(":\n"))
+
+	if err != nil {
+		log.Warnf("failed to write http keepalive response: %v", err)
+	} else if f, ok := w.(http.Flusher); ok {
+		f.Flush()
+	}
+}
+
+func keepalive(ctx context.Context, w http.ResponseWriter, mut *sync.Mutex, wg *sync.WaitGroup, t ticker.Ticker) {
+	defer t.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-t.C():
+			writeKeepalive(w, mut)
+
+			// The waitgroup is purely intended for unit tests and is always nil in production use cases
+			if wg != nil {
+				wg.Done()
+			}
+		}
+	}
+}
+
+func withKeepalive(ctx context.Context, w http.ResponseWriter, recv recvFn) (http.ResponseWriter, recvFn) {
+	return withKeepaliveAux(ctx, w, recv, nil, ticker.NewTicker)
+}
+
+func withKeepaliveAux(ctx context.Context, w http.ResponseWriter, recv recvFn, wg *sync.WaitGroup, tf tickerFac) (http.ResponseWriter, recvFn) {
+	keepaliveInterval := time.Duration(time.Second * 15)
+	keepaliveTicker := tf(keepaliveInterval)
+	oldRecv := recv
+	mut := sync.Mutex{}
+	oldw := w
+
+	w = httpsnoop.Wrap(oldw, httpsnoop.Hooks{
+		Write: func(next httpsnoop.WriteFunc) httpsnoop.WriteFunc {
+			return func(p []byte) (int, error) {
+				mut.Lock()
+				defer mut.Unlock()
+				return next(p)
+			}
+		},
+	})
+
+	recv = func() (proto.Message, error) {
+		result, err := oldRecv()
+
+		if ctx.Err() == nil {
+			keepaliveTicker.Reset(keepaliveInterval)
+		}
+
+		return result, err
+	}
+
+	go keepalive(ctx, oldw, &mut, wg, keepaliveTicker)
+
+	return w, recv
+}
+
 func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamForwarderFunc {
 	return func(
 		ctx context.Context,
@@ -144,6 +223,7 @@ func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamFo
 		opts ...func(context.Context, http.ResponseWriter, proto.Message) error,
 	) {
 		isSSE := req.Header.Get("Accept") == "text/event-stream"
+
 		if isSSE {
 			w.Header().Set("Content-Type", "text/event-stream")
 			w.Header().Set("Transfer-Encoding", "chunked")
@@ -179,6 +259,11 @@ func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamFo
 				}
 			}
 		}
+
+		if isSSE && os.Getenv("DISABLE_SSE_KEEPALIVE") == "" {
+			w, recv = withKeepalive(ctx, w, recv)
+		}
+
 		runtime.ForwardResponseStream(ctx, mux, m, w, req, recv, opts...)
 	}
 }
