@@ -15,12 +15,7 @@ import (
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
-
-	"github.com/argoproj/pkg/ticker"
 )
-
-type recvFn func() (proto.Message, error)
-type tickerFac func(time.Duration) ticker.Ticker
 
 type messageMarshaler struct {
 	fields  map[string]interface{}
@@ -158,58 +153,36 @@ func writeKeepalive(w http.ResponseWriter, mut *sync.Mutex) {
 	}
 }
 
-func keepalive(ctx context.Context, w http.ResponseWriter, mut *sync.Mutex, wg *sync.WaitGroup, t ticker.Ticker) {
+func keepalive(ctx context.Context, w http.ResponseWriter, mut *sync.Mutex, t time.Ticker) {
 	defer t.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-t.C():
+		case <-t.C:
 			writeKeepalive(w, mut)
-
-			// The waitgroup is purely intended for unit tests and is always nil in production use cases
-			if wg != nil {
-				wg.Done()
-			}
 		}
 	}
 }
 
-func withKeepalive(ctx context.Context, w http.ResponseWriter, recv recvFn) (http.ResponseWriter, recvFn) {
-	return withKeepaliveAux(ctx, w, recv, nil, ticker.NewTicker)
-}
-
-func withKeepaliveAux(ctx context.Context, w http.ResponseWriter, recv recvFn, wg *sync.WaitGroup, tf tickerFac) (http.ResponseWriter, recvFn) {
+func withKeepalive(ctx context.Context, w http.ResponseWriter) http.ResponseWriter {
 	keepaliveInterval := time.Duration(time.Second * 15)
-	keepaliveTicker := tf(keepaliveInterval)
-	oldRecv := recv
+	keepaliveTicker := time.NewTicker(keepaliveInterval)
 	mut := sync.Mutex{}
-	oldw := w
 
-	w = httpsnoop.Wrap(oldw, httpsnoop.Hooks{
+	go keepalive(ctx, w, &mut, *keepaliveTicker)
+
+	return httpsnoop.Wrap(w, httpsnoop.Hooks{
 		Write: func(next httpsnoop.WriteFunc) httpsnoop.WriteFunc {
 			return func(p []byte) (int, error) {
 				mut.Lock()
 				defer mut.Unlock()
+				keepaliveTicker.Reset(keepaliveInterval)
 				return next(p)
 			}
 		},
 	})
-
-	recv = func() (proto.Message, error) {
-		result, err := oldRecv()
-
-		if ctx.Err() == nil {
-			keepaliveTicker.Reset(keepaliveInterval)
-		}
-
-		return result, err
-	}
-
-	go keepalive(ctx, oldw, &mut, wg, keepaliveTicker)
-
-	return w, recv
 }
 
 func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamForwarderFunc {
@@ -261,7 +234,7 @@ func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamFo
 		}
 
 		if isSSE && os.Getenv("DISABLE_SSE_KEEPALIVE") == "" {
-			w, recv = withKeepalive(ctx, w, recv)
+			w = withKeepalive(ctx, w)
 		}
 
 		runtime.ForwardResponseStream(ctx, mux, m, w, req, recv, opts...)
