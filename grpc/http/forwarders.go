@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"sync"
 	"time"
@@ -185,11 +184,6 @@ func withKeepalive(ctx context.Context, w http.ResponseWriter) http.ResponseWrit
 	})
 }
 
-func isSSEKeepaliveEnabled() bool {
-	value, present := os.LookupEnv("ENABLE_SSE_KEEPALIVE")
-	return !present || value == "true"
-}
-
 func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamForwarderFunc {
 	return func(
 		ctx context.Context,
@@ -201,11 +195,11 @@ func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamFo
 		opts ...func(context.Context, http.ResponseWriter, proto.Message) error,
 	) {
 		isSSE := req.Header.Get("Accept") == "text/event-stream"
-
 		if isSSE {
 			w.Header().Set("Content-Type", "text/event-stream")
 			w.Header().Set("Transfer-Encoding", "chunked")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
+			w = withKeepalive(ctx, w)
 		}
 		dataByKey := make(map[string][]byte)
 		m := newMarshaler(req, isSSE)
@@ -237,11 +231,6 @@ func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamFo
 				}
 			}
 		}
-
-		if isSSE && isSSEKeepaliveEnabled() {
-			w = withKeepalive(ctx, w)
-		}
-
 		runtime.ForwardResponseStream(ctx, mux, m, w, req, recv, opts...)
 	}
 }
