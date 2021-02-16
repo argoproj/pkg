@@ -153,36 +153,41 @@ func writeKeepalive(w http.ResponseWriter, mut *sync.Mutex) {
 	}
 }
 
-func keepalive(ctx context.Context, w http.ResponseWriter, mut *sync.Mutex, t time.Ticker) {
-	defer t.Stop()
+func keepalive(ctx context.Context, w http.ResponseWriter, mut *sync.Mutex) {
+	keepaliveInterval := time.Duration(time.Second * 15)
+	keepaliveTicker := time.NewTicker(keepaliveInterval)
+
+	defer keepaliveTicker.Stop()
 
 	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-t.C:
+		case <-keepaliveTicker.C:
 			writeKeepalive(w, mut)
 		}
 	}
 }
 
 func withKeepalive(ctx context.Context, w http.ResponseWriter) http.ResponseWriter {
-	keepaliveInterval := time.Duration(time.Second * 15)
-	keepaliveTicker := time.NewTicker(keepaliveInterval)
 	mut := sync.Mutex{}
 
-	go keepalive(ctx, w, &mut, *keepaliveTicker)
+	go keepalive(ctx, w, &mut)
 
 	return httpsnoop.Wrap(w, httpsnoop.Hooks{
 		Write: func(next httpsnoop.WriteFunc) httpsnoop.WriteFunc {
 			return func(p []byte) (int, error) {
 				mut.Lock()
 				defer mut.Unlock()
-				keepaliveTicker.Reset(keepaliveInterval)
 				return next(p)
 			}
 		},
 	})
+}
+
+func isSSEKeepaliveEnabled() bool {
+	value, present := os.LookupEnv("ENABLE_SSE_KEEPALIVE")
+	return !present || value == "true"
 }
 
 func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamForwarderFunc {
@@ -233,7 +238,7 @@ func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamFo
 			}
 		}
 
-		if isSSE && os.Getenv("DISABLE_SSE_KEEPALIVE") == "" {
+		if isSSE && isSSEKeepaliveEnabled() {
 			w = withKeepalive(ctx, w)
 		}
 
