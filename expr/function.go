@@ -13,12 +13,12 @@ func GetExprEnvFunctionMap() map[string]interface{} {
 	return map[string]interface{}{
 		"asInt":    AsInt,
 		"asFloat":  AsFloat,
-		"string":   String,
+		"string":   AsStr,
 		"jsonpath": JsonPath,
 	}
 }
 
-func String(val interface{}) interface{} {
+func AsStr(val interface{}) interface{} {
 	return fmt.Sprintf("%v", val)
 }
 
