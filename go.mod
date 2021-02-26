@@ -9,6 +9,7 @@ require (
 	github.com/golang/protobuf v1.3.3
 	github.com/grpc-ecosystem/grpc-gateway v1.14.6
 	github.com/minio/minio-go/v7 v7.0.2
+	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.6.0
 	github.com/smartystreets/goconvey v1.6.4 // indirect
