@@ -265,7 +265,7 @@ func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
 	listOpts := minio.ListObjectsOptions{
-		//Prefix:    keyPrefix,
+		Prefix:    keyPrefix,
 		Recursive: true,
 	}
 	var out []string
