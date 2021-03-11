@@ -6,6 +6,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+    "fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -269,10 +270,13 @@ func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 		Recursive: true,
 	}
 	var out []string
+    var errors []string
 	objCh := s.minioClient.ListObjects(s.ctx, bucket, listOpts)
 	for obj := range objCh {
 		if obj.Err != nil {
-			return nil, errors.WithStack(obj.Err)
+            errors = append(errors, obj.Err.Error())
+            continue
+			//return nil, errors.WithStack(obj.Err)
 		}
 		if strings.HasSuffix(obj.Key, "/") {
 			// When a dir is created through AWS S3 console, a nameless obj will be created
@@ -285,6 +289,9 @@ func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 		}
 		out = append(out, obj.Key)
 	}
+    if len(errors) > 0  {
+        return out, fmt.Errorf("%s", strings.Join(errors, ", "))
+    }
 	return out, nil
 }
 
