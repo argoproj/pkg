@@ -6,7 +6,6 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
-    "fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -258,6 +257,7 @@ func (s *s3client) IsDirectory(bucket, key string) (bool, error) {
 
 func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 	log.Infof("Listing directory from s3 (endpoint: %s, bucket: %s, key: %s)", s.Endpoint, bucket, keyPrefix)
+
 	if keyPrefix != "" {
 		keyPrefix = filepath.Clean(keyPrefix) + "/"
 		if os.PathSeparator == '\\' {
@@ -272,15 +272,10 @@ func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 		Recursive: true,
 	}
 	var out []string
-    var errors []string
 	objCh := s.minioClient.ListObjects(s.ctx, bucket, listOpts)
 	for obj := range objCh {
 		if obj.Err != nil {
-			errors = append(errors, obj.Err.Error())
-			errors = append(errors, obj.Key)
-			errors = append(errors, fmt.Sprintf("%+v", obj))
-            continue
-			//return nil, errors.WithStack(obj.Err)
+			return nil, errors.WithStack(obj.Err)
 		}
 		if strings.HasSuffix(obj.Key, "/") {
 			// When a dir is created through AWS S3 console, a nameless obj will be created
@@ -293,9 +288,6 @@ func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 		}
 		out = append(out, obj.Key)
 	}
-    if len(errors) > 0  {
-        return out, fmt.Errorf("%s", strings.Join(errors, ", "))
-    }
 	return out, nil
 }
 
