@@ -258,9 +258,11 @@ func (s *s3client) IsDirectory(bucket, key string) (bool, error) {
 
 func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 	log.Infof("Listing directory from s3 (endpoint: %s, bucket: %s, key: %s)", s.Endpoint, bucket, keyPrefix)
-	keyPrefix = filepath.Clean(keyPrefix) + "/"
-	if os.PathSeparator == '\\' {
-		keyPrefix = strings.ReplaceAll(keyPrefix, "\\", "/")
+	if keyPrefix != "" {
+		keyPrefix = filepath.Clean(keyPrefix) + "/"
+		if os.PathSeparator == '\\' {
+			keyPrefix = strings.ReplaceAll(keyPrefix, "\\", "/")
+		}
 	}
 
 	doneCh := make(chan struct{})
