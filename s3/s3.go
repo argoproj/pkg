@@ -274,7 +274,9 @@ func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 	objCh := s.minioClient.ListObjects(s.ctx, bucket, listOpts)
 	for obj := range objCh {
 		if obj.Err != nil {
-            errors = append(errors, obj.Err.Error())
+			errors = append(errors, obj.Err.Error())
+			errors = append(errors, obj.Key)
+			errors = append(errors, fmt.Sprintf("%+v", obj))
             continue
 			//return nil, errors.WithStack(obj.Err)
 		}
