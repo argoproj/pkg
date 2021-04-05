@@ -169,23 +169,22 @@ type uploadTask struct {
 func generatePutTasks(keyPrefix, rootPath string) chan uploadTask {
 	rootPath = filepath.Clean(rootPath) + string(os.PathSeparator)
 	uploadTasks := make(chan uploadTask)
-	visit := func(localPath string, fi os.FileInfo, err error) error {
-		relPath := strings.TrimPrefix(localPath, rootPath)
-		if fi.IsDir() {
-			return nil
-		}
-		if fi.Mode()&os.ModeSymlink != 0 {
-			return nil
-		}
-		t := uploadTask{
-			key:  path.Join(keyPrefix, relPath),
-			path: localPath,
-		}
-		uploadTasks <- t
-		return nil
-	}
 	go func() {
-		_ = filepath.Walk(rootPath, visit)
+		_ = filepath.Walk(rootPath, func(localPath string, fi os.FileInfo, _ error) error {
+			relPath := strings.TrimPrefix(localPath, rootPath)
+			if fi.IsDir() {
+				return nil
+			}
+			if fi.Mode()&os.ModeSymlink != 0 {
+				return nil
+			}
+			t := uploadTask{
+				key:  path.Join(keyPrefix, relPath),
+				path: localPath,
+			}
+			uploadTasks <- t
+			return nil
+		})
 		close(uploadTasks)
 	}()
 	return uploadTasks
