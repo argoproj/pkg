@@ -161,7 +161,7 @@ func TestParseRequest(t *testing.T) {
 		},
 		{
 			testName: "VirtualService GET",
-			url:      "https://127.0.0.1/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/virutal-service",
+			url:      "https://127.0.0.1/apis/networking.istio.io/v1alpha3/namespaces/default/virtualservices/virtual-service",
 			expected: ResourceInfo{
 				Server:    "https://127.0.0.1",
 				Verb:      Get,
