@@ -9,9 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/argoproj/pkg/rand"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+
+	"github.com/argoproj/pkg/rand"
 )
 
 var (

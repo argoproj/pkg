@@ -3,11 +3,7 @@ run:
   concurrency: 4
   timeout: 5m
   skip-dirs:
-    - pkg/client
     - vendor
-    - ui
-  skip-files:
-    - server/static/files.go
   build-tags:
     - api
     - cli
@@ -33,4 +29,4 @@ linters:
     - varcheck
 linters-settings:
   goimports:
-    local-prefixes: github.com/argoproj/argo-workflows/
+    local-prefixes: github.com/argoproj/pkg
