@@ -4,10 +4,9 @@ import (
 	"flag"
 	"strconv"
 
+	"github.com/argoproj/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"k8s.io/klog/v2"
-
-	"github.com/argoproj/pkg/errors"
 )
 
 // SetLogLevel parses and sets a logrus log level

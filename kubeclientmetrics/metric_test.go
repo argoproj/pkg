@@ -51,7 +51,6 @@ func TestAddMetricsTransportWrapperWrapTwice(t *testing.T) {
 	_, _ = client.AppsV1().ReplicaSets(metav1.NamespaceDefault).Get("test", metav1.GetOptions{})
 	// Ensures second wrapper added by AddMetricsTransportWrapper is executed
 	assert.Equal(t, 1, currentCount)
-
 }
 
 func newGetRequest(str string) *http.Request {
@@ -168,7 +167,7 @@ func TestParseRequest(t *testing.T) {
 				Verb:      Get,
 				Kind:      "virtualservices",
 				Namespace: "default",
-				Name:      "virutal-service",
+				Name:      "virtual-service",
 			},
 		},
 		{

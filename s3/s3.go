@@ -81,7 +81,6 @@ func GetAWSCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 
 // GetAssumeRoleCredentials gets Assumed role credentials
 func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
-
 	sess := session.Must(session.NewSession())
 
 	// Create the credentials from AssumeRoleProvider to assume the role
@@ -148,7 +147,6 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 		return errors.WithStack(err)
 	}
 	return nil
-
 }
 
 func (s *s3client) BucketExists(bucketName string) (bool, error) {
