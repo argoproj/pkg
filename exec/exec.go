@@ -15,8 +15,10 @@ import (
 	"github.com/argoproj/pkg/rand"
 )
 
-var ErrWaitPIDTimeout = fmt.Errorf("Timed out waiting for PID to complete")
-var Unredacted = Redact(nil)
+var (
+	ErrWaitPIDTimeout = fmt.Errorf("Timed out waiting for PID to complete")
+	Unredacted        = Redact(nil)
+)
 
 type CmdError struct {
 	Args   string
@@ -62,7 +64,6 @@ func Redact(items []string) func(text string) string {
 // RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
 // failure.
 func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
-
 	logCtx := log.WithFields(log.Fields{"execID": rand.RandString(5)})
 
 	redactor := DefaultCmdOpts.Redactor
@@ -101,7 +102,7 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	}
 
 	select {
-	//noinspection ALL
+	// noinspection ALL
 	case <-timoutCh:
 		_ = cmd.Process.Kill()
 		output := stdout.String()
@@ -141,7 +142,7 @@ func WaitPID(pid int, opts ...WaitPIDOpts) error {
 		return errors.Errorf("Platform '%s' unsupported", runtime.GOOS)
 	}
 	var timeout time.Duration
-	var pollInterval = time.Second
+	pollInterval := time.Second
 	if len(opts) > 0 {
 		if opts[0].PollInterval != 0 {
 			pollInterval = opts[0].PollInterval

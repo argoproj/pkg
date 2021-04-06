@@ -17,19 +17,17 @@ type testStruct struct {
 	Message string `json:"message,omitempty"`
 }
 
-var (
-	testVal = testStruct{
-		Metadata: &testStruct{Name: "test"},
-		Spec: &testStruct{
-			Source: &testStruct{
-				Path: "test_path",
-			},
+var testVal = testStruct{
+	Metadata: &testStruct{Name: "test"},
+	Spec: &testStruct{
+		Source: &testStruct{
+			Path: "test_path",
 		},
-		Status: &testStruct{
-			Message: "Failed",
-		},
-	}
-)
+	},
+	Status: &testStruct{
+		Message: "Failed",
+	},
+}
 
 func TestMarshalerIncludeFields(t *testing.T) {
 	m := messageMarshaler{fields: map[string]interface{}{

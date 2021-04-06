@@ -13,8 +13,10 @@ const (
 	letterIdxMax  = 63 / letterIdxBits   // # of letter indices fitting in 63 bits
 )
 
-var srcMutex = sync.Mutex{}
-var src = rand.NewSource(time.Now().UnixNano())
+var (
+	srcMutex = sync.Mutex{}
+	src      = rand.NewSource(time.Now().UnixNano())
+)
 
 // RandString returns a cryptographically-secure pseudo-random alpha-numeric string of a given length
 func RandString(n int) string {
