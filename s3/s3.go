@@ -81,7 +81,6 @@ func GetAWSCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 
 // GetAssumeRoleCredentials gets Assumed role credentials
 func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
-
 	sess := session.Must(session.NewSession())
 
 	// Create the credentials from AssumeRoleProvider to assume the role
@@ -148,7 +147,6 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 		return errors.WithStack(err)
 	}
 	return nil
-
 }
 
 func (s *s3client) BucketExists(bucketName string) (bool, error) {
@@ -171,23 +169,22 @@ type uploadTask struct {
 func generatePutTasks(keyPrefix, rootPath string) chan uploadTask {
 	rootPath = filepath.Clean(rootPath) + string(os.PathSeparator)
 	uploadTasks := make(chan uploadTask)
-	visit := func(localPath string, fi os.FileInfo, err error) error {
-		relPath := strings.TrimPrefix(localPath, rootPath)
-		if fi.IsDir() {
-			return nil
-		}
-		if fi.Mode()&os.ModeSymlink != 0 {
-			return nil
-		}
-		t := uploadTask{
-			key:  path.Join(keyPrefix, relPath),
-			path: localPath,
-		}
-		uploadTasks <- t
-		return nil
-	}
 	go func() {
-		_ = filepath.Walk(rootPath, visit)
+		_ = filepath.Walk(rootPath, func(localPath string, fi os.FileInfo, _ error) error {
+			relPath := strings.TrimPrefix(localPath, rootPath)
+			if fi.IsDir() {
+				return nil
+			}
+			if fi.Mode()&os.ModeSymlink != 0 {
+				return nil
+			}
+			t := uploadTask{
+				key:  path.Join(keyPrefix, relPath),
+				path: localPath,
+			}
+			uploadTasks <- t
+			return nil
+		})
 		close(uploadTasks)
 	}()
 	return uploadTasks

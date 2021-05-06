@@ -70,8 +70,7 @@ func RegisterHeapDumper(filePath string) {
 func LogStats() {
 	var m runtime.MemStats
 	runtime.ReadMemStats(&m)
-	log.Infof("Alloc=%v TotalAlloc=%v Sys=%v NumGC=%v Goroutines=%d",
-		m.Alloc/1024, m.TotalAlloc/1024, m.Sys/1024, m.NumGC, runtime.NumGoroutine())
+	log.Infof("Alloc=%v TotalAlloc=%v Sys=%v NumGC=%v Goroutines=%d", m.Alloc/1024, m.TotalAlloc/1024, m.Sys/1024, m.NumGC, runtime.NumGoroutine())
 
 }
 
