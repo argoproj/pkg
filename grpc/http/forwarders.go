@@ -195,11 +195,13 @@ func NewStreamForwarder(messageKey func(proto.Message) (string, error)) StreamFo
 		opts ...func(context.Context, http.ResponseWriter, proto.Message) error,
 	) {
 		isSSE := req.Header.Get("Accept") == "text/event-stream"
+		processCtx, cancel := context.WithCancel(ctx)
+		defer cancel()
 		if isSSE {
 			w.Header().Set("Content-Type", "text/event-stream")
 			w.Header().Set("Transfer-Encoding", "chunked")
 			w.Header().Set("X-Content-Type-Options", "nosniff")
-			w = withKeepalive(ctx, w)
+			w = withKeepalive(processCtx, w)
 		}
 		dataByKey := make(map[string][]byte)
 		m := newMarshaler(req, isSSE)
