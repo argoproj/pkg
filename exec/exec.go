@@ -64,7 +64,11 @@ func Redact(items []string) func(text string) string {
 // RunCommandExt is a convenience function to run/log a command and return/log stderr in an error upon
 // failure.
 func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
-	logCtx := log.WithFields(log.Fields{"execID": rand.RandString(5)})
+	execId, err := rand.RandString(5)
+	if err != nil {
+		return "", err
+	}
+	logCtx := log.WithFields(log.Fields{"execID": execId})
 
 	redactor := DefaultCmdOpts.Redactor
 	if opts.Redactor != nil {
@@ -81,7 +85,7 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	cmd.Stderr = &stderr
 
 	start := time.Now()
-	err := cmd.Start()
+	err = cmd.Start()
 	if err != nil {
 		return "", err
 	}
