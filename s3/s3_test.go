@@ -10,12 +10,16 @@ import (
 // TestNewS3Client tests the s3 construtor
 func TestNewS3Client(t *testing.T) {
 	opts := S3ClientOpts{
-		Endpoint:  "foo.com",
-		Region:    "us-south-3",
-		Secure:    false,
-		AccessKey: "key",
-		SecretKey: "secret",
-		Trace:     true,
+		Endpoint:        "foo.com",
+		Region:          "us-south-3",
+		Secure:          false,
+		AccessKey:       "key",
+		SecretKey:       "secret",
+		Trace:           true,
+		RoleARN:         "",
+		RoleSessionName: "",
+		UseSDKCreds:     false,
+		EncryptOpts:     &EncryptOpts{Enabled: true, SSECPassword: "", KmsKeyId: "", KMSEncryptionContext: ""},
 	}
 	s3If, err := NewS3Client(context.Background(), opts)
 	assert.NoError(t, err)
@@ -25,6 +29,7 @@ func TestNewS3Client(t *testing.T) {
 	assert.Equal(t, opts.Secure, s3cli.Secure)
 	assert.Equal(t, opts.AccessKey, s3cli.AccessKey)
 	assert.Equal(t, opts.Trace, s3cli.Trace)
+	assert.Equal(t, opts.EncryptOpts, s3cli.EncryptOpts)
 	// s3cli.minioClient.
 	// 	s3client.minioClient
 }
@@ -62,5 +67,31 @@ func TestNewS3ClientWithDiff(t *testing.T) {
 		assert.Equal(t, opts.Region, s3cli.Region)
 		assert.Equal(t, opts.Trace, s3cli.Trace)
 		assert.Equal(t, opts.Endpoint, s3cli.minioClient.EndpointURL().Host)
+	})
+}
+
+func TestDisallowedComboOptions(t *testing.T) {
+	t.Run("KMS and SSEC", func(t *testing.T) {
+		opts := S3ClientOpts{
+			Endpoint:    "foo.com",
+			Region:      "us-south-3",
+			Secure:      true,
+			Trace:       true,
+			EncryptOpts: &EncryptOpts{Enabled: true, SSECPassword: "PASSWORD", KmsKeyId: "00000000-0000-0000-0000-000000000000", KMSEncryptionContext: ""},
+		}
+		_, err := NewS3Client(context.Background(), opts)
+		assert.Error(t, err)
+	})
+
+	t.Run("SSEC and InSecure", func(t *testing.T) {
+		opts := S3ClientOpts{
+			Endpoint:    "foo.com",
+			Region:      "us-south-3",
+			Secure:      false,
+			Trace:       true,
+			EncryptOpts: &EncryptOpts{Enabled: true, SSECPassword: "PASSWORD", KmsKeyId: "", KMSEncryptionContext: ""},
+		}
+		_, err := NewS3Client(context.Background(), opts)
+		assert.Error(t, err)
 	})
 }
