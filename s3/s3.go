@@ -50,10 +50,10 @@ type S3Client interface {
 }
 
 type EncryptOpts struct {
-	KmsKeyId             string
-	KMSEncryptionContext string
-	Enabled              bool
-	SSECPassword         string
+	KmsKeyId              string
+	KmsEncryptionContext  string
+	Enabled               bool
+	ServerSideCustomerKey string
 }
 
 type S3ClientOpts struct {
@@ -108,16 +108,16 @@ func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, erro
 
 func GetCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 	if opts.AccessKey != "" && opts.SecretKey != "" {
-		log.Infof("Creating minio client %s using static credentials", opts.Endpoint)
+		log.WithField("endpoint", opts.Endpoint).Info("Creating minio client using static credentials")
 		return credentials.NewStaticV4(opts.AccessKey, opts.SecretKey, ""), nil
 	} else if opts.RoleARN != "" {
-		log.Infof("Creating minio client %s using assumed-role credentials", opts.RoleARN)
+		log.WithField("roleArn", opts.RoleARN).Info("Creating minio client using assumed-role credentials")
 		return GetAssumeRoleCredentials(opts)
 	} else if opts.UseSDKCreds {
-		log.Infof("Creating minio client using AWS SDK credentials")
+		log.Info("Creating minio client using AWS SDK credentials")
 		return GetAWSCredentials(opts)
 	} else {
-		log.Infof("Creating minio client using IAM role")
+		log.Info("Creating minio client using IAM role")
 		return credentials.NewIAM(nullIAMEndpoint), nil
 	}
 }
@@ -147,11 +147,11 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 	}
 
 	if opts.EncryptOpts != nil {
-		if opts.EncryptOpts.KmsKeyId != "" && opts.EncryptOpts.SSECPassword != "" {
+		if opts.EncryptOpts.KmsKeyId != "" && opts.EncryptOpts.ServerSideCustomerKey != "" {
 			return nil, errors.New("EncryptOpts.KmsKeyId and EncryptOpts.SSECPassword cannot be set together")
 		}
 
-		if opts.EncryptOpts.SSECPassword != "" && !opts.Secure {
+		if opts.EncryptOpts.ServerSideCustomerKey != "" && !opts.Secure {
 			return nil, errors.New("Secure must be set if EncryptOpts.SSECPassword is set")
 
 		}
@@ -165,7 +165,7 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 
 // PutFile puts a single file to a bucket at the specified key
 func (s *s3client) PutFile(bucket, key, path string) error {
-	log.Infof("Saving from %s to s3 (endpoint: %s, bucket: %s, key: %s)", path, s.Endpoint, bucket, key)
+	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": key, "path": path}).Info("Saving file to s3")
 	// NOTE: minio will detect proper mime-type based on file extension
 
 	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
@@ -182,13 +182,13 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 }
 
 func (s *s3client) BucketExists(bucketName string) (bool, error) {
-	log.Infof("Checking if bucket %s exists.", bucketName)
+	log.WithField("bucket", bucketName).Info("Checking if bucket exists")
 	result, err := s.minioClient.BucketExists(s.ctx, bucketName)
 	return result, errors.WithStack(err)
 }
 
 func (s *s3client) MakeBucket(bucketName string, opts minio.MakeBucketOptions) error {
-	log.Infof("Creating bucket: %s. (Region: %s, ObjectLocking: %t)", bucketName, opts.Region, opts.ObjectLocking)
+	log.WithFields(log.Fields{"bucket": bucketName, "region": opts.Region, "objectLocking": opts.ObjectLocking}).Info("Creating bucket")
 	err := s.minioClient.MakeBucket(s.ctx, bucketName, opts)
 
 	if err != nil {
@@ -242,7 +242,7 @@ func (s *s3client) PutDirectory(bucket, key, path string) error {
 
 // GetFile downloads a file to a local file path
 func (s *s3client) GetFile(bucket, key, path string) error {
-	log.Infof("Getting from s3 (endpoint: %s, bucket: %s, key: %s) to %s", s.Endpoint, bucket, key, path)
+	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": key, "path": path}).Info("Getting file from s3")
 
 	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
 	if err != nil {
@@ -258,8 +258,7 @@ func (s *s3client) GetFile(bucket, key, path string) error {
 
 // GetDirectory downloads a s3 directory to a local path
 func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
-	log.Infof("Getting directory from s3 (endpoint: %s, bucket: %s, key: %s) to %s", s.Endpoint, bucket, keyPrefix, path)
-
+	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": keyPrefix, "path": path}).Info("Getting directory from s3")
 	keys, err := s.ListDirectory(bucket, keyPrefix)
 	if err != nil {
 		return err
@@ -297,7 +296,7 @@ func (s *s3client) IsDirectory(bucket, key string) (bool, error) {
 }
 
 func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
-	log.Infof("Listing directory from s3 (endpoint: %s, bucket: %s, key: %s)", s.Endpoint, bucket, keyPrefix)
+	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": keyPrefix}).Info("Listing directory from s3")
 
 	if keyPrefix != "" {
 		keyPrefix = filepath.Clean(keyPrefix) + "/"
@@ -347,17 +346,16 @@ func (s *s3client) setBucketEnc(bucketName string) error {
 		return nil
 	}
 
-	log.Infof("Setting Bucket Encryption: %s. (KmsKeyId: %s)", bucketName, s.EncryptOpts.KmsKeyId)
 	var config *sse.Configuration
-
 	if s.EncryptOpts.KmsKeyId != "" {
 		config = sse.NewConfigurationSSEKMS(s.EncryptOpts.KmsKeyId)
 	} else {
 		config = sse.NewConfigurationSSES3()
 	}
 
+	log.WithFields(log.Fields{"KmsKeyId": s.EncryptOpts.KmsKeyId, "bucketName": bucketName}).Info("Setting Bucket Encryption")
 	err := s.minioClient.SetBucketEncryption(s.ctx, bucketName, config)
-	return errors.WithStack(err)
+	return err
 }
 
 // buildServerSideEnc creates the minio encryption options when putting encrypted items in a bucket
@@ -366,14 +364,14 @@ func (e *EncryptOpts) buildServerSideEnc(bucket, key string) (encrypt.ServerSide
 		return nil, nil
 	}
 
-	if e.SSECPassword != "" {
-		encryption := encrypt.DefaultPBKDF([]byte(e.SSECPassword), []byte(bucket+key))
+	if e.ServerSideCustomerKey != "" {
+		encryption := encrypt.DefaultPBKDF([]byte(e.ServerSideCustomerKey), []byte(bucket+key))
 
 		return encryption, nil
 	}
 
 	if e.KmsKeyId != "" {
-		encryptionCtx, err := parseKMSEncCntx(e.KMSEncryptionContext)
+		encryptionCtx, err := parseKMSEncCntx(e.KmsEncryptionContext)
 
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to parse KMS encryption context")
@@ -384,7 +382,7 @@ func (e *EncryptOpts) buildServerSideEnc(bucket, key string) (encrypt.ServerSide
 			kms, err := encrypt.NewSSEKMS(e.KmsKeyId, nil)
 
 			if err != nil {
-				return nil, errors.WithStack(err)
+				return nil, err
 			}
 
 			return kms, nil
