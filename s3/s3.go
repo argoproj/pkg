@@ -66,7 +66,7 @@ type S3ClientOpts struct {
 	RoleARN         string
 	RoleSessionName string
 	UseSDKCreds     bool
-	EncryptOpts     *EncryptOpts
+	EncryptOpts     EncryptOpts
 }
 
 type s3client struct {
@@ -146,15 +146,12 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 		minioClient.TraceOn(log.StandardLogger().Out)
 	}
 
-	if opts.EncryptOpts != nil {
-		if opts.EncryptOpts.KmsKeyId != "" && opts.EncryptOpts.ServerSideCustomerKey != "" {
-			return nil, errors.New("EncryptOpts.KmsKeyId and EncryptOpts.SSECPassword cannot be set together")
-		}
+	if opts.EncryptOpts.KmsKeyId != "" && opts.EncryptOpts.ServerSideCustomerKey != "" {
+		return nil, errors.New("EncryptOpts.KmsKeyId and EncryptOpts.SSECPassword cannot be set together")
+	}
 
-		if opts.EncryptOpts.ServerSideCustomerKey != "" && !opts.Secure {
-			return nil, errors.New("Secure must be set if EncryptOpts.SSECPassword is set")
-
-		}
+	if opts.EncryptOpts.ServerSideCustomerKey != "" && !opts.Secure {
+		return nil, errors.New("Secure must be set if EncryptOpts.SSECPassword is set")
 	}
 
 	s3cli.ctx = ctx
@@ -342,7 +339,7 @@ func IsS3ErrCode(err error, code string) bool {
 
 // setBucketEnc sets the encryption options on a bucket
 func (s *s3client) setBucketEnc(bucketName string) error {
-	if s.EncryptOpts == nil || !s.EncryptOpts.Enabled {
+	if !s.EncryptOpts.Enabled {
 		return nil
 	}
 
