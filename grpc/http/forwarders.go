@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -139,11 +138,12 @@ type StreamForwarderFunc func(
 )
 
 func flush(flusher http.Flusher) {
-	v := reflect.ValueOf(flusher).Elem()
-	y := v.FieldByName("w")
-	if !y.IsNil() {
-		flusher.Flush()
-	}
+	defer func() {
+		if r := recover(); r != nil {
+			log.Warn("recovered in flush, issue with writer inside http.ResponseWriter")
+		}
+	}()
+	flusher.Flush()
 }
 
 func writeKeepalive(w http.ResponseWriter, mut *sync.Mutex) {
