@@ -1,6 +1,9 @@
 package http
 
 import (
+	"bufio"
+	"bytes"
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -61,4 +64,39 @@ func TestMarshalerSSE(t *testing.T) {
 	assert.Equal(t, `data: {"metadata":{"name":"test"},"spec":{"source":{"path":"test_path"}},"status":{"message":"Failed"}} 
 
 `, string(out))
+}
+
+var flushed bool
+
+type flusher struct {
+	w *bufio.Writer
+}
+
+func (f *flusher) Flush() {
+	err := f.w.Flush()
+	if err != nil {
+		panic(err)
+	}
+
+	flushed = true
+}
+
+func TestFlushSuccess(t *testing.T) {
+	flushed = false
+
+	var buf bytes.Buffer
+	_, _ = fmt.Fprintf(&buf, "Size: %d MB.", 85)
+	f := flusher{w: bufio.NewWriter(&buf)}
+	flush(&f)
+
+	assert.Equal(t, true, flushed)
+}
+
+func TestFlushFailed(t *testing.T) {
+	flushed = false
+
+	f := flusher{}
+	flush(&f)
+
+	assert.Equal(t, false, flushed)
 }
