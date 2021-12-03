@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -137,6 +138,14 @@ type StreamForwarderFunc func(
 	opts ...func(context.Context, http.ResponseWriter, proto.Message) error,
 )
 
+func flush(flusher http.Flusher) {
+	v := reflect.ValueOf(flusher).Elem()
+	y := v.FieldByName("w")
+	if !y.IsNil() {
+		flusher.Flush()
+	}
+}
+
 func writeKeepalive(w http.ResponseWriter, mut *sync.Mutex) {
 	mut.Lock()
 	defer mut.Unlock()
@@ -148,7 +157,7 @@ func writeKeepalive(w http.ResponseWriter, mut *sync.Mutex) {
 	if err != nil {
 		log.Warnf("failed to write http keepalive response: %v", err)
 	} else if f, ok := w.(http.Flusher); ok {
-		f.Flush()
+		flush(f)
 	}
 }
 
@@ -160,8 +169,8 @@ func keepalive(ctx context.Context, w http.ResponseWriter, mut *sync.Mutex) {
 
 	for {
 		select {
-		case <-ctx.Done():
-			return
+		//case <-ctx.Done():
+		//	return
 		case <-keepaliveTicker.C:
 			writeKeepalive(w, mut)
 		}
