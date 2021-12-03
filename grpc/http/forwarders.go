@@ -169,8 +169,8 @@ func keepalive(ctx context.Context, w http.ResponseWriter, mut *sync.Mutex) {
 
 	for {
 		select {
-		//case <-ctx.Done():
-		//	return
+		case <-ctx.Done():
+			return
 		case <-keepaliveTicker.C:
 			writeKeepalive(w, mut)
 		}
