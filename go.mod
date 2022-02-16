@@ -8,14 +8,13 @@ require (
 	github.com/felixge/httpsnoop v1.0.1
 	github.com/golang/protobuf v1.3.3
 	github.com/grpc-ecosystem/grpc-gateway v1.14.6
-	github.com/minio/minio-go/v7 v7.0.2
+	github.com/minio/minio-go/v7 v7.0.22
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.6.0
-	github.com/smartystreets/goconvey v1.6.4 // indirect
+	github.com/sirupsen/logrus v1.8.1
 	github.com/spf13/cobra v1.0.0
 	github.com/stretchr/testify v1.6.1
-	golang.org/x/net v0.0.0-20200202094626-16171245cfb2
+	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	k8s.io/api v0.17.8
 	k8s.io/apimachinery v0.17.8
 	k8s.io/client-go v0.17.8
