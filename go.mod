@@ -28,6 +28,7 @@ replace (
 
 	// Avoid SNYK-GOLANG-GITHUBCOMPKGSFTP-569475. Should be safe to remove after upgrading to github.com/spf13/cobra@v1.3.1.
 	github.com/pkg/sftp@v1.10.1 => github.com/pkg/sftp v1.11.0
+
 	// https://github.com/kubernetes/kubernetes/issues/79384#issuecomment-505627280
 	k8s.io/api => k8s.io/api v0.23.4
 	k8s.io/apiextensions-apiserver => k8s.io/apiextensions-apiserver v0.23.4 // indirect
