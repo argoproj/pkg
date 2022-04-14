@@ -11,7 +11,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.2
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.6.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/smartystreets/goconvey v1.6.4 // indirect
 	github.com/spf13/cobra v1.0.0
 	github.com/stretchr/testify v1.6.1
