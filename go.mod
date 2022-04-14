@@ -6,13 +6,14 @@ require (
 	github.com/aws/aws-sdk-go v1.33.16
 	github.com/dustin/go-humanize v1.0.0
 	github.com/felixge/httpsnoop v1.0.2
+	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/golang/protobuf v1.3.3
 	github.com/grpc-ecosystem/grpc-gateway v1.14.6
 	github.com/minio/minio-go/v7 v7.0.24
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.8.1
-	github.com/spf13/cobra v1.0.0
+	github.com/spf13/cobra v1.4.0
 	github.com/stretchr/testify v1.7.1
 	golang.org/x/net v0.0.0-20200707034311-ab3426394381
 	k8s.io/api v0.17.8
