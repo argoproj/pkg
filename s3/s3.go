@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"io"
 	"os"
 	"path"
 	"path/filepath"
@@ -251,6 +252,21 @@ func (s *s3client) GetFile(bucket, key, path string) error {
 		return errors.WithStack(err)
 	}
 	return nil
+}
+
+// OpenFile opens a file for reading
+func (s *s3client) OpenFile(bucket, key string) (io.Reader, error) {
+	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": key}).Info("Opening file from s3")
+
+	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	f, err := s.minioClient.GetObject(s.ctx, bucket, key, minio.GetObjectOptions{ServerSideEncryption: encOpts})
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+	return f, nil
 }
 
 // GetDirectory downloads a s3 directory to a local path
