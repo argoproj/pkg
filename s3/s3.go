@@ -34,6 +34,9 @@ type S3Client interface {
 	// GetFile downloads a file to a local file path
 	GetFile(bucket, key, path string) error
 
+	// OpenFile opens a file for much lower disk and memory usage that GetFile
+	OpenFile(bucket, key string) (io.ReadCloser, error)
+
 	// GetDirectory downloads a directory to a local file path
 	GetDirectory(bucket, key, path string) error
 
@@ -255,7 +258,7 @@ func (s *s3client) GetFile(bucket, key, path string) error {
 }
 
 // OpenFile opens a file for reading
-func (s *s3client) OpenFile(bucket, key string) (io.Reader, error) {
+func (s *s3client) OpenFile(bucket, key string) (io.ReadCloser, error) {
 	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": key}).Info("Opening file from s3")
 
 	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
