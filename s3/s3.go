@@ -37,6 +37,8 @@ type S3Client interface {
 	// OpenFile opens a file for much lower disk and memory usage that GetFile
 	OpenFile(bucket, key string) (io.ReadCloser, error)
 
+	Delete(bucket, key string) error
+
 	// GetDirectory downloads a directory to a local file path
 	GetDirectory(bucket, key, path string) error
 
@@ -270,6 +272,11 @@ func (s *s3client) OpenFile(bucket, key string) (io.ReadCloser, error) {
 		return nil, errors.WithStack(err)
 	}
 	return f, nil
+}
+
+func (s *s3client) Delete(bucket, key string) error {
+	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": key}).Info("Deleting object from s3")
+	return s.minioClient.RemoveObject(s.ctx, bucket, key, minio.RemoveObjectOptions{})
 }
 
 // GetDirectory downloads a s3 directory to a local path
