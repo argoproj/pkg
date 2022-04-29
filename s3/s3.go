@@ -300,11 +300,19 @@ func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 
 // IsDirectory tests if the key is acting like a s3 directory. This just means it has at least one
 // object which is prefixed with the given key
-func (s *s3client) IsDirectory(bucket, key string) (bool, error) {
+func (s *s3client) IsDirectory(bucket, keyPrefix string) (bool, error) {
 	doneCh := make(chan struct{})
 	defer close(doneCh)
+
+	if keyPrefix != "" {
+		keyPrefix = filepath.Clean(keyPrefix) + "/"
+		if os.PathSeparator == '\\' {
+			keyPrefix = strings.ReplaceAll(keyPrefix, "\\", "/")
+		}
+	}
+
 	listOpts := minio.ListObjectsOptions{
-		Prefix:    key,
+		Prefix:    keyPrefix,
 		Recursive: false,
 	}
 	objCh := s.minioClient.ListObjects(s.ctx, bucket, listOpts)
