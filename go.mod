@@ -3,7 +3,7 @@ module github.com/argoproj/pkg
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go v1.44.7
+	github.com/aws/aws-sdk-go v1.44.8
 	github.com/dustin/go-humanize v1.0.0
 	github.com/felixge/httpsnoop v1.0.2
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
