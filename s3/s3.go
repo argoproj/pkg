@@ -271,6 +271,11 @@ func (s *s3client) OpenFile(bucket, key string) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
+	// the call above doesn't return an error in the case that the key doesn't exist, but by calling Stat() it will
+	_, err = f.Stat()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
 	return f, nil
 }
 
