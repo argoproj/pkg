@@ -292,9 +292,15 @@ func (s *s3client) KeyExists(bucket, key string) (bool, error) {
 		return false, errors.WithStack(err)
 	}
 
-	objInfo, err := s.minioClient.StatObject(s.ctx, bucket, key, minio.StatObjectOptions{ServerSideEncryption: encOpts})
-	// todo: try out different conditions here to see if we get an error that uniquely identifies "not found" - don't want to return an err below if it's simply the case that the file wasn't found
-	return objInfo.Key != "", err
+	_, err = s.minioClient.StatObject(s.ctx, bucket, key, minio.StatObjectOptions{ServerSideEncryption: encOpts})
+	if err == nil {
+		return true, nil
+	}
+	if IsS3ErrCode(err, "NoSuchKey") {
+		return false, nil
+	}
+
+	return false, err
 }
 
 func (s *s3client) Delete(bucket, key string) error {
