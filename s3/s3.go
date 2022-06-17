@@ -37,6 +37,10 @@ type S3Client interface {
 	// OpenFile opens a file for much lower disk and memory usage that GetFile
 	OpenFile(bucket, key string) (io.ReadCloser, error)
 
+	// KeyExists checks if object exists (and if we have permission to access)
+	KeyExists(bucket, key string) (bool, error)
+
+	// Delete deletes the key from the bucket
 	Delete(bucket, key string) error
 
 	// GetDirectory downloads a directory to a local file path
@@ -45,7 +49,7 @@ type S3Client interface {
 	// ListDirectory list the contents of a directory/bucket
 	ListDirectory(bucket, keyPrefix string) ([]string, error)
 
-	// IsDirectory tests if the key is acting like a s3 directory
+	// IsDirectory tests if the key is acting like an s3 directory
 	IsDirectory(bucket, key string) (bool, error)
 
 	// BucketExists returns whether a bucket exists
@@ -277,6 +281,20 @@ func (s *s3client) OpenFile(bucket, key string) (io.ReadCloser, error) {
 		return nil, errors.WithStack(err)
 	}
 	return f, nil
+}
+
+// checks if object exists (and if we have permission to access)
+func (s *s3client) KeyExists(bucket, key string) (bool, error) {
+	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": key}).Info("Checking key exists from s3")
+
+	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
+	if err != nil {
+		return false, errors.WithStack(err)
+	}
+
+	objInfo, err := s.minioClient.StatObject(s.ctx, bucket, key, minio.StatObjectOptions{ServerSideEncryption: encOpts})
+	// todo: try out different conditions here to see if we get an error that uniquely identifies "not found" - don't want to return an err below if it's simply the case that the file wasn't found
+	return objInfo.Key != "", err
 }
 
 func (s *s3client) Delete(bucket, key string) error {
