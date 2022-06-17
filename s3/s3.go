@@ -300,7 +300,7 @@ func (s *s3client) KeyExists(bucket, key string) (bool, error) {
 		return false, nil
 	}
 
-	return false, err
+	return false, errors.WithStack(err)
 }
 
 func (s *s3client) Delete(bucket, key string) error {
