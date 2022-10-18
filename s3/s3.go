@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
@@ -236,15 +237,30 @@ func generatePutTasks(keyPrefix, rootPath string) chan uploadTask {
 }
 
 // PutDirectory puts a complete directory into a bucket key prefix, with each file in the directory
-// a separate key in the bucket.
+// a separate key in the bucket. It starts multiple goroutines to make put requests in parallel.
 func (s *s3client) PutDirectory(bucket, key, path string) error {
-	for putTask := range generatePutTasks(key, path) {
-		err := s.PutFile(bucket, putTask.key, putTask.path)
-		if err != nil {
-			return err
-		}
+	putTasks := generatePutTasks(key, path)
+	var workerErr error
+	var wg sync.WaitGroup
+
+	for i := 1; i <= 10; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for putTask := range putTasks {
+				if workerErr != nil {
+					return
+				}
+				err := s.PutFile(bucket, putTask.key, putTask.path)
+				if err != nil {
+					workerErr = err
+					return
+				}
+			}
+		}()
 	}
-	return nil
+	wg.Wait()
+	return workerErr
 }
 
 // GetFile downloads a file to a local file path
