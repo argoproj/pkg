@@ -319,7 +319,13 @@ func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 	for _, objKey := range keys {
 		relKeyPath := strings.TrimPrefix(objKey, keyPrefix)
 		localPath := filepath.Join(path, relKeyPath)
-		err := s.minioClient.FGetObject(s.ctx, bucket, objKey, localPath, minio.GetObjectOptions{})
+
+		encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, objKey)
+		if err != nil {
+			return errors.WithStack(err)
+		}
+
+		err = s.minioClient.FGetObject(s.ctx, bucket, objKey, localPath, minio.GetObjectOptions{ServerSideEncryption: encOpts})
 		if err != nil {
 			return errors.WithStack(err)
 		}
