@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/pkg/errors"
@@ -42,14 +43,21 @@ func newCmdError(args string, cause error, stderr string) *CmdError {
 	return &CmdError{Args: args, Stderr: stderr, Cause: cause}
 }
 
+type TimeoutBehavior struct {
+	Signal     syscall.Signal
+	ShouldWait bool
+}
+
 type CmdOpts struct {
-	Timeout  time.Duration
-	Redactor func(text string) string
+	Timeout         time.Duration
+	Redactor        func(text string) string
+	TimeoutBehavior TimeoutBehavior
 }
 
 var DefaultCmdOpts = CmdOpts{
-	Timeout:  time.Duration(0),
-	Redactor: Unredacted,
+	Timeout:         time.Duration(0),
+	Redactor:        Unredacted,
+	TimeoutBehavior: TimeoutBehavior{syscall.SIGKILL, false},
 }
 
 func Redact(items []string) func(text string) string {
@@ -105,10 +113,18 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 		timoutCh = time.NewTimer(timeout).C
 	}
 
+	timeoutBehavior := DefaultCmdOpts.TimeoutBehavior
+	if opts.TimeoutBehavior.Signal != syscall.Signal(0) {
+		timeoutBehavior = opts.TimeoutBehavior
+	}
+
 	select {
 	// noinspection ALL
 	case <-timoutCh:
-		_ = cmd.Process.Kill()
+		_ = cmd.Process.Signal(timeoutBehavior.Signal)
+		if timeoutBehavior.ShouldWait {
+			<-done
+		}
 		output := stdout.String()
 		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
 		err = newCmdError(redactor(args), fmt.Errorf("timeout after %v", timeout), "")

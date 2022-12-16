@@ -2,6 +2,7 @@ package exec
 
 import (
 	"os/exec"
+	"syscall"
 	"testing"
 	"time"
 
@@ -61,6 +62,19 @@ func TestRunCommandTimeout(t *testing.T) {
 	assert.Equal(t, log.ErrorLevel, entry.Level)
 	assert.Equal(t, "`sh -c echo hello world && echo my-error >&2 && sleep 2` failed timeout after 500ms", entry.Message)
 	assert.Contains(t, entry.Data, "execID")
+}
+
+func TestRunCommandSignal(t *testing.T) {
+	hook := test.NewGlobal()
+	log.SetLevel(log.DebugLevel)
+	defer log.SetLevel(log.InfoLevel)
+
+	var timeoutBehavior = TimeoutBehavior{Signal: syscall.SIGTERM, ShouldWait: true}
+	output, err := RunCommand("sh", CmdOpts{Timeout: 200 * time.Millisecond, TimeoutBehavior: timeoutBehavior}, "-c", "trap 'trap - SIGTERM && echo captured && exit' SIGTERM && sleep 2")
+	assert.Equal(t, "captured", output)
+	assert.EqualError(t, err, "`sh -c trap 'trap - SIGTERM && echo captured && exit' SIGTERM && sleep 2` failed timeout after 200ms")
+
+	assert.Len(t, hook.Entries, 3)
 }
 
 func TestTrimmedOutput(t *testing.T) {
