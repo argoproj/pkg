@@ -43,14 +43,21 @@ func newCmdError(args string, cause error, stderr string) *CmdError {
 	return &CmdError{Args: args, Stderr: stderr, Cause: cause}
 }
 
+// TimeoutBehavior defines behavior for when the command takes longer than the passed in timeout to exit
+// By default, SIGKILL is sent to the process and it is not waited upon
 type TimeoutBehavior struct {
-	Signal     syscall.Signal
+	// Signal determines the signal to send to the process
+	Signal syscall.Signal
+	// ShouldWait determines whether to wait for the command to exit once timeout is reached
 	ShouldWait bool
 }
 
 type CmdOpts struct {
-	Timeout         time.Duration
-	Redactor        func(text string) string
+	// Timeout determines how long to wait for the command to exit
+	Timeout time.Duration
+	// Redactor redacts tokens from the output
+	Redactor func(text string) string
+	// TimeoutBehavior configures what to do in case of timeout
 	TimeoutBehavior TimeoutBehavior
 }
 
