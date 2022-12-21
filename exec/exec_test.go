@@ -99,14 +99,12 @@ func TestRunCommandExitErr(t *testing.T) {
 }
 
 func TestRunCommandErr(t *testing.T) {
-	//_ := test.NewGlobal()
 	log.SetLevel(log.DebugLevel)
 	defer log.SetLevel(log.InfoLevel)
 
-	// this would create a panic
-	output, err := RunCommand("", CmdOpts{Redactor: Redact([]string{"world"})})
+	output, err := RunCommand("sh", CmdOpts{Redactor: Redact([]string{"world"})}, "-c", ">&2 echo 'failure'; false")
 	assert.Empty(t, output)
-	assert.EqualError(t, err, "fork/exec : no such file or directory")
+	assert.EqualError(t, err, "`sh -c >&2 echo 'failure'; false` failed exit status 1: failure")
 }
 
 func TestRunInDir(t *testing.T) {
