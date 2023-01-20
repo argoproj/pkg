@@ -5,7 +5,7 @@ LINT_CONCURRENCY?=8
 LINT_DEADLINE?=1m0s
 
 .PHONY: build
-build: linux-build windows-build darwin-build
+build: linux-build windows-build darwin-build freebsd-build
 
 .PHONY: clean
 clean:
@@ -22,6 +22,10 @@ linux-build:
 .PHONY: darwin-build
 darwin-build:
 	GOOS=darwin go build ./...
+
+.PHONY: freebsd-build
+freebsd-build:
+	GOOS=freebsd go build ./...
 
 .PHONY: lint
 lint:
