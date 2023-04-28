@@ -66,8 +66,18 @@ type EncryptOpts struct {
 	ServerSideCustomerKey string
 }
 
+// AddressingStyle is a type of bucket (and also its content) addressing used by the S3 client and supported by the server
+type AddressingStyle int
+
+const (
+	AutoDetectStyle AddressingStyle = iota
+	PathStyle
+	VirtualHostedStyle
+)
+
 type S3ClientOpts struct {
 	Endpoint        string
+	AddressingStyle AddressingStyle
 	Region          string
 	Secure          bool
 	AccessKey       string
@@ -147,7 +157,15 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 		return nil, errors.WithStack(err)
 	}
 
-	minioOpts := &minio.Options{Creds: credentials, Secure: s3cli.Secure, Region: s3cli.Region}
+	var bucketLookupType minio.BucketLookupType
+	if s3cli.AddressingStyle == PathStyle {
+		bucketLookupType = minio.BucketLookupPath
+	} else if s3cli.AddressingStyle == VirtualHostedStyle {
+		bucketLookupType = minio.BucketLookupDNS
+	} else {
+		bucketLookupType = minio.BucketLookupAuto
+	}
+	minioOpts := &minio.Options{Creds: credentials, Secure: s3cli.Secure, Region: s3cli.Region, BucketLookup: bucketLookupType}
 	minioClient, err = minio.New(s3cli.Endpoint, minioOpts)
 	if err != nil {
 		return nil, errors.WithStack(err)

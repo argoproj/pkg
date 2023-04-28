@@ -30,6 +30,7 @@ func TestNewS3Client(t *testing.T) {
 	assert.Equal(t, opts.AccessKey, s3cli.AccessKey)
 	assert.Equal(t, opts.Trace, s3cli.Trace)
 	assert.Equal(t, opts.EncryptOpts, s3cli.EncryptOpts)
+	assert.Equal(t, opts.AddressingStyle, s3cli.AddressingStyle)
 	// s3cli.minioClient.
 	// 	s3client.minioClient
 }
