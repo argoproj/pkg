@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"io"
+	"net/http"
 	"os"
 	"path"
 	"path/filepath"
@@ -80,6 +81,7 @@ type S3ClientOpts struct {
 	AddressingStyle AddressingStyle
 	Region          string
 	Secure          bool
+	Transport       http.RoundTripper
 	AccessKey       string
 	SecretKey       string
 	Trace           bool
@@ -142,6 +144,11 @@ func GetCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 	}
 }
 
+// GetDefaultTransport returns minio's default transport
+func GetDefaultTransport(opts S3ClientOpts) (*http.Transport, error) {
+	return minio.DefaultTransport(opts.Secure)
+}
+
 // NewS3Client instantiates a new S3 client object backed
 func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 	s3cli := s3client{
@@ -165,7 +172,7 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 	} else {
 		bucketLookupType = minio.BucketLookupAuto
 	}
-	minioOpts := &minio.Options{Creds: credentials, Secure: s3cli.Secure, Region: s3cli.Region, BucketLookup: bucketLookupType}
+	minioOpts := &minio.Options{Creds: credentials, Secure: s3cli.Secure, Transport: opts.Transport, Region: s3cli.Region, BucketLookup: bucketLookupType}
 	minioClient, err = minio.New(s3cli.Endpoint, minioOpts)
 	if err != nil {
 		return nil, errors.WithStack(err)
