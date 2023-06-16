@@ -9,7 +9,7 @@ require (
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/golang/protobuf v1.3.3
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
-	github.com/minio/minio-go/v7 v7.0.56
+	github.com/minio/minio-go/v7 v7.0.57
 	github.com/oliveagle/jsonpath v0.0.0-20180606110733-2e52cf6e6852
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
