@@ -59,12 +59,18 @@ type CmdOpts struct {
 	Redactor func(text string) string
 	// TimeoutBehavior configures what to do in case of timeout
 	TimeoutBehavior TimeoutBehavior
+	// SkipErrorLogging defines whether to skip logging of execution errors (rc > 0)
+	SkipErrorLogging bool
+	// CaptureStderr defines whether to capture stderr in addition to stdout
+	CaptureStderr bool
 }
 
 var DefaultCmdOpts = CmdOpts{
-	Timeout:         time.Duration(0),
-	Redactor:        Unredacted,
-	TimeoutBehavior: TimeoutBehavior{syscall.SIGKILL, false},
+	Timeout:          time.Duration(0),
+	Redactor:         Unredacted,
+	TimeoutBehavior:  TimeoutBehavior{syscall.SIGKILL, false},
+	SkipErrorLogging: false,
+	CaptureStderr:    false,
 }
 
 func Redact(items []string) func(text string) string {
@@ -133,6 +139,9 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 			<-done
 		}
 		output := stdout.String()
+		if opts.CaptureStderr {
+			output += stderr.String()
+		}
 		logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
 		err = newCmdError(redactor(args), fmt.Errorf("timeout after %v", timeout), "")
 		logCtx.Error(err.Error())
@@ -140,14 +149,22 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 	case err := <-done:
 		if err != nil {
 			output := stdout.String()
+			if opts.CaptureStderr {
+				output += stderr.String()
+			}
 			logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
 			err := newCmdError(redactor(args), errors.New(redactor(err.Error())), strings.TrimSpace(redactor(stderr.String())))
-			logCtx.Error(err.Error())
+			if !opts.SkipErrorLogging {
+				logCtx.Error(err.Error())
+			}
 			return strings.TrimSuffix(output, "\n"), err
 		}
 	}
 
 	output := stdout.String()
+	if opts.CaptureStderr {
+		output += stderr.String()
+	}
 	logCtx.WithFields(log.Fields{"duration": time.Since(start)}).Debug(redactor(output))
 
 	return strings.TrimSuffix(output, "\n"), nil
