@@ -138,3 +138,9 @@ func TestRedact(t *testing.T) {
 	assert.Equal(t, "****** ******", Redact([]string{"foo", "bar"})("foo bar"))
 	assert.Equal(t, "****** ******", Redact([]string{"foo"})("foo foo"))
 }
+
+func TestRunCaptureStderr(t *testing.T) {
+	output, err := RunCommand("sh", CmdOpts{CaptureStderr: true}, "-c", "echo hello world && echo my-error >&2 && exit 0")
+	assert.Equal(t, "hello world\nmy-error", output)
+	assert.NoError(t, err)
+}
