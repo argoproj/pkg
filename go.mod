@@ -15,7 +15,7 @@ require (
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.7.0
 	github.com/stretchr/testify v1.8.4
-	golang.org/x/net v0.12.0
+	golang.org/x/net v0.13.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/api v0.17.8
 	k8s.io/apimachinery v0.17.8
