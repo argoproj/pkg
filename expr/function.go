@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"strconv"
 
-	"github.com/oliveagle/jsonpath"
+	"github.com/evilmonkeyinc/jsonpath"
 )
 
 func GetExprEnvFunctionMap() map[string]interface{} {
@@ -28,7 +28,7 @@ func JsonPath(jsonStr string, path string) interface{} {
 	if err != nil {
 		panic(err)
 	}
-	value, err := jsonpath.JsonPathLookup(jsonMap, path)
+	value, err := jsonpath.Query(path, jsonMap)
 	if err != nil {
 		panic(err)
 	}
