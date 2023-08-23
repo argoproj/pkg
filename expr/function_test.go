@@ -27,7 +27,7 @@ func TestJsonPath(t *testing.T) {
 	simpleJson := "{\"employee\":{\"name\":\"sonoo\",\"salary\":56000,\"married\":true}}"
 	arrayJson := "{\"employees\":[{\"name\":\"Shyam\",\"email\":\"shyamjaiswal@gmail.com\",\"age\":43},{\"name\":\"Bob\",\"email\":\"bob32@gmail.com\",\"age\":42}," +
 		"{\"name\":\"Jai\",\"email\":\"jai87@gmail.com\",\"age\":44}]}"
-	
+
 	assert.Equal(t, "sonoo", JsonPath(simpleJson, "$.employee.name"))
 	assert.Equal(t, "Bob", JsonPath(arrayJson, "$.employees[1].name"))
 	assert.Equal(t, []interface{}{"Bob"}, JsonPath(arrayJson, `$.employees[?(@.name == "Bob")].name`))
