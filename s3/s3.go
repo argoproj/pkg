@@ -101,12 +101,13 @@ var _ S3Client = &s3client{}
 
 // Get AWS credentials based on default order from aws SDK
 func GetAWSCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
-	cfg, err := config.LoadDefaultConfig(context.Background(), config.WithRegion(opts.Region))
+	ctx := context.Background()
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(opts.Region))
 	if err != nil {
 		return nil, err
 	}
 
-	value, err := cfg.Credentials.Retrieve(context.Background())
+	value, err := cfg.Credentials.Retrieve(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +116,8 @@ func GetAWSCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 
 // GetAssumeRoleCredentials gets Assumed role credentials
 func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
-	cfg, err := config.LoadDefaultConfig(context.Background())
+	ctx := context.Background()
+	cfg, err := config.LoadDefaultConfig(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +127,7 @@ func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, erro
 	// referenced by the "myRoleARN" ARN. Prompt for MFA token from stdin.
 
 	creds := stscreds.NewAssumeRoleProvider(client, opts.RoleARN)
-	value, err := creds.Retrieve(context.Background())
+	value, err := creds.Retrieve(ctx)
 	if err != nil {
 		return nil, err
 	}
