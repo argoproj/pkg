@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials/stscreds"
-	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/minio/minio-go/v7/pkg/encrypt"
@@ -101,12 +101,13 @@ var _ S3Client = &s3client{}
 
 // Get AWS credentials based on default order from aws SDK
 func GetAWSCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
-	sess := session.Must(session.NewSessionWithOptions(session.Options{
-		Config:            aws.Config{Region: aws.String(opts.Region)},
-		SharedConfigState: session.SharedConfigEnable,
-	}))
+	ctx := context.Background()
+	cfg, err := config.LoadDefaultConfig(ctx, config.WithRegion(opts.Region))
+	if err != nil {
+		return nil, err
+	}
 
-	value, err := sess.Config.Credentials.Get()
+	value, err := cfg.Credentials.Retrieve(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -115,13 +116,18 @@ func GetAWSCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 
 // GetAssumeRoleCredentials gets Assumed role credentials
 func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
-	sess := session.Must(session.NewSession())
+	ctx := context.Background()
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return nil, err
+	}
+	client := sts.NewFromConfig(cfg)
 
 	// Create the credentials from AssumeRoleProvider to assume the role
 	// referenced by the "myRoleARN" ARN. Prompt for MFA token from stdin.
 
-	creds := stscreds.NewCredentials(sess, opts.RoleARN)
-	value, err := creds.Get()
+	creds := stscreds.NewAssumeRoleProvider(client, opts.RoleARN)
+	value, err := creds.Retrieve(ctx)
 	if err != nil {
 		return nil, err
 	}
