@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-// TestNewS3Client tests the s3 construtor
+// TestNewS3Client tests the s3 constructor
 func TestNewS3Client(t *testing.T) {
 	opts := S3ClientOpts{
 		Endpoint:        "foo.com",
@@ -17,6 +17,7 @@ func TestNewS3Client(t *testing.T) {
 		Transport:       http.DefaultTransport,
 		AccessKey:       "key",
 		SecretKey:       "secret",
+		SessionToken:    "",
 		Trace:           true,
 		RoleARN:         "",
 		RoleSessionName: "",
@@ -31,6 +32,7 @@ func TestNewS3Client(t *testing.T) {
 	assert.Equal(t, opts.Secure, s3cli.Secure)
 	assert.Equal(t, opts.Transport, s3cli.Transport)
 	assert.Equal(t, opts.AccessKey, s3cli.AccessKey)
+	assert.Equal(t, opts.SessionToken, s3cli.SessionToken)
 	assert.Equal(t, opts.Trace, s3cli.Trace)
 	assert.Equal(t, opts.EncryptOpts, s3cli.EncryptOpts)
 	assert.Equal(t, opts.AddressingStyle, s3cli.AddressingStyle)
@@ -38,7 +40,26 @@ func TestNewS3Client(t *testing.T) {
 	// 	s3client.minioClient
 }
 
-// TestNewS3Client tests the s3 construtor
+// TestNewS3Client tests the S3 constructor using ephemeral credentials
+func TestNewS3ClientEphemeral(t *testing.T) {
+	opts := S3ClientOpts{
+		Endpoint:     "foo.com",
+		Region:       "us-south-3",
+		AccessKey:    "key",
+		SecretKey:    "secret",
+		SessionToken: "sessionToken",
+	}
+	s3If, err := NewS3Client(context.Background(), opts)
+	assert.NoError(t, err)
+	s3cli := s3If.(*s3client)
+	assert.Equal(t, opts.Endpoint, s3cli.Endpoint)
+	assert.Equal(t, opts.Region, s3cli.Region)
+	assert.Equal(t, opts.AccessKey, s3cli.AccessKey)
+	assert.Equal(t, opts.SecretKey, s3cli.SecretKey)
+	assert.Equal(t, opts.SessionToken, s3cli.SessionToken)
+}
+
+// TestNewS3Client tests the s3 constructor
 func TestNewS3ClientWithDiff(t *testing.T) {
 	t.Run("IAMRole", func(t *testing.T) {
 		opts := S3ClientOpts{
