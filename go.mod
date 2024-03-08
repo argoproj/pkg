@@ -10,7 +10,7 @@ require (
 	github.com/evilmonkeyinc/jsonpath v0.8.1
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
-	github.com/golang/protobuf v1.3.3
+	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/minio/minio-go/v7 v7.0.66
