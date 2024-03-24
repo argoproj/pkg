@@ -84,6 +84,7 @@ type S3ClientOpts struct {
 	Transport       http.RoundTripper
 	AccessKey       string
 	SecretKey       string
+	SessionToken    string
 	Trace           bool
 	RoleARN         string
 	RoleSessionName string
@@ -136,8 +137,13 @@ func GetAssumeRoleCredentials(opts S3ClientOpts) (*credentials.Credentials, erro
 
 func GetCredentials(opts S3ClientOpts) (*credentials.Credentials, error) {
 	if opts.AccessKey != "" && opts.SecretKey != "" {
-		log.WithField("endpoint", opts.Endpoint).Info("Creating minio client using static credentials")
-		return credentials.NewStaticV4(opts.AccessKey, opts.SecretKey, ""), nil
+		if opts.SessionToken != "" {
+			log.WithField("endpoint", opts.Endpoint).Info("Creating minio client using ephemeral credentials")
+			return credentials.NewStaticV4(opts.AccessKey, opts.SecretKey, opts.SessionToken), nil
+		} else {
+			log.WithField("endpoint", opts.Endpoint).Info("Creating minio client using static credentials")
+			return credentials.NewStaticV4(opts.AccessKey, opts.SecretKey, ""), nil
+		}
 	} else if opts.RoleARN != "" {
 		log.WithField("roleArn", opts.RoleARN).Info("Creating minio client using assumed-role credentials")
 		return GetAssumeRoleCredentials(opts)
