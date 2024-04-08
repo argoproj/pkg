@@ -3,7 +3,7 @@ module github.com/argoproj/pkg
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go-v2/config v1.27.10
+	github.com/aws/aws-sdk-go-v2/config v1.27.11
 	github.com/aws/aws-sdk-go-v2/credentials v1.17.11
 	github.com/aws/aws-sdk-go-v2/service/sts v1.28.6
 	github.com/dustin/go-humanize v1.0.1
