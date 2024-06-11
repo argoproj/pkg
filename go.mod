@@ -11,14 +11,13 @@ require (
 	github.com/felixge/httpsnoop v1.0.4
 	github.com/golang/groupcache v0.0.0-20190129154638-5b532d6fd5ef // indirect
 	github.com/golang/protobuf v1.3.3
-	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/minio/minio-go/v7 v7.0.66
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
 	github.com/spf13/cobra v1.8.0
 	github.com/stretchr/testify v1.9.0
-	golang.org/x/net v0.25.0
+	golang.org/x/net v0.26.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	k8s.io/api v0.17.8
 	k8s.io/apimachinery v0.17.8
