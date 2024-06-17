@@ -15,7 +15,7 @@ require (
 	github.com/minio/minio-go/v7 v7.0.66
 	github.com/pkg/errors v0.9.1
 	github.com/sirupsen/logrus v1.9.3
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.9.0
 	golang.org/x/net v0.26.0
 	gopkg.in/yaml.v2 v2.4.0 // indirect
