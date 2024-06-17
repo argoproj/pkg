@@ -111,7 +111,7 @@ func RunCommandExt(cmd *exec.Cmd, opts CmdOpts) (string, error) {
 		return "", err
 	}
 
-	done := make(chan error)
+	done := make(chan error, 1)
 	go func() { done <- cmd.Wait() }()
 
 	// Start a timer
