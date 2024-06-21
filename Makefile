@@ -9,7 +9,7 @@ build: linux-build windows-build darwin-build
 
 .PHONY: clean
 clean:
-	rm -Rf vendor
+	rm -rf vendor
 
 .PHONY: windows-build
 windows-build:
