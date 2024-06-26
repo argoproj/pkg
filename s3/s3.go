@@ -252,7 +252,11 @@ func generatePutTasks(keyPrefix, rootPath string) chan uploadTask {
 	rootPath = filepath.Clean(rootPath) + string(os.PathSeparator)
 	uploadTasks := make(chan uploadTask)
 	go func() {
-		_ = filepath.Walk(rootPath, func(localPath string, fi os.FileInfo, _ error) error {
+		_ = filepath.Walk(rootPath, func(localPath string, fi os.FileInfo, err error) error {
+			if err != nil {
+				log.WithFields(log.Fields{"localPath": localPath}).Error("Failed to walk artifacts path", err)
+				return err
+			}
 			relPath := strings.TrimPrefix(localPath, rootPath)
 			if fi.IsDir() {
 				return nil
