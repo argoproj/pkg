@@ -77,19 +77,19 @@ const (
 )
 
 type S3ClientOpts struct {
-	Endpoint         string
-	AddressingStyle  AddressingStyle
-	Region           string
-	Secure           bool
-	Transport        http.RoundTripper
-	AccessKey        string
-	SecretKey        string
-	SessionToken     string
-	Trace            bool
-	RoleARN          string
-	RoleSessionName  string
-	UseSDKCreds      bool
-	EncryptOpts      EncryptOpts
+	Endpoint        string
+	AddressingStyle AddressingStyle
+	Region          string
+	Secure          bool
+	Transport       http.RoundTripper
+	AccessKey       string
+	SecretKey       string
+	SessionToken    string
+	Trace           bool
+	RoleARN         string
+	RoleSessionName string
+	UseSDKCreds     bool
+	EncryptOpts     EncryptOpts
 	EnableDualStack bool
 }
 
