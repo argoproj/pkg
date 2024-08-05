@@ -77,19 +77,20 @@ const (
 )
 
 type S3ClientOpts struct {
-	Endpoint        string
-	AddressingStyle AddressingStyle
-	Region          string
-	Secure          bool
-	Transport       http.RoundTripper
-	AccessKey       string
-	SecretKey       string
-	SessionToken    string
-	Trace           bool
-	RoleARN         string
-	RoleSessionName string
-	UseSDKCreds     bool
-	EncryptOpts     EncryptOpts
+	Endpoint         string
+	AddressingStyle  AddressingStyle
+	Region           string
+	Secure           bool
+	Transport        http.RoundTripper
+	AccessKey        string
+	SecretKey        string
+	SessionToken     string
+	Trace            bool
+	RoleARN          string
+	RoleSessionName  string
+	UseSDKCreds      bool
+	EncryptOpts      EncryptOpts
+	DisableDualStack bool
 }
 
 type s3client struct {
@@ -192,7 +193,9 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 	if opts.Trace {
 		minioClient.TraceOn(log.StandardLogger().Out)
 	}
-
+	if opts.DisableDualStack {
+		minioClient.SetS3EnableDualstack(false)
+	}
 	if opts.EncryptOpts.KmsKeyId != "" && opts.EncryptOpts.ServerSideCustomerKey != "" {
 		return nil, errors.New("EncryptOpts.KmsKeyId and EncryptOpts.SSECPassword cannot be set together")
 	}
