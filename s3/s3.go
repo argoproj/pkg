@@ -90,7 +90,7 @@ type S3ClientOpts struct {
 	RoleSessionName  string
 	UseSDKCreds      bool
 	EncryptOpts      EncryptOpts
-	DisableDualStack bool
+	EnableDualStack bool
 }
 
 type s3client struct {
@@ -193,9 +193,6 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 	if opts.Trace {
 		minioClient.TraceOn(log.StandardLogger().Out)
 	}
-	if opts.DisableDualStack {
-		minioClient.SetS3EnableDualstack(false)
-	}
 	if opts.EncryptOpts.KmsKeyId != "" && opts.EncryptOpts.ServerSideCustomerKey != "" {
 		return nil, errors.New("EncryptOpts.KmsKeyId and EncryptOpts.SSECPassword cannot be set together")
 	}
@@ -204,6 +201,7 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 		return nil, errors.New("Secure must be set if EncryptOpts.SSECPassword is set")
 	}
 
+	minioClient.SetS3EnableDualstack(s3cli.EnableDualStack)
 	s3cli.ctx = ctx
 	s3cli.minioClient = minioClient
 
