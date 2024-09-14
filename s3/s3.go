@@ -28,9 +28,16 @@ type S3Client interface {
 	// PutFile puts a single file to a bucket at the specified key
 	PutFile(bucket, key, path string) error
 
+	// PutFileWithMetadata puts a single file to a bucket at the specified key with specified metadata and tags
+	PutFileWithMetadata(bucket, key, path string, metadata, tags map[string]string) error
+
 	// PutDirectory puts a complete directory into a bucket key prefix, with each file in the directory
 	// a separate key in the bucket.
 	PutDirectory(bucket, key, path string) error
+
+	// PutDirectoryWithMetadata puts a complete directory into a bucket key prefix, with each file in the directory
+	// a separate key in the bucket with specified metadata and tags.
+	PutDirectoryWithMetadata(bucket, key, path string, metadata, tags map[string]string) error
 
 	// GetFile downloads a file to a local file path
 	GetFile(bucket, key, path string) error
@@ -225,6 +232,24 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 	return nil
 }
 
+// PutFile puts a single file to a bucket at the specified key
+func (s *s3client) PutFileWithMetadata(bucket, key, path string, metadata, tags map[string]string) error {
+	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": key, "path": path}).Info("Saving file to s3")
+	// NOTE: minio will detect proper mime-type based on file extension
+
+	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
+
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	_, err = s.minioClient.FPutObject(s.ctx, bucket, key, path, minio.PutObjectOptions{ServerSideEncryption: encOpts, UserMetadata: metadata, UserTags: tags})
+	if err != nil {
+		return errors.WithStack(err)
+	}
+	return nil
+}
+
 func (s *s3client) BucketExists(bucketName string) (bool, error) {
 	log.WithField("bucket", bucketName).Info("Checking if bucket exists")
 	result, err := s.minioClient.BucketExists(s.ctx, bucketName)
@@ -281,6 +306,16 @@ func generatePutTasks(keyPrefix, rootPath string) chan uploadTask {
 func (s *s3client) PutDirectory(bucket, key, path string) error {
 	for putTask := range generatePutTasks(key, path) {
 		err := s.PutFile(bucket, putTask.key, putTask.path)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *s3client) PutDirectoryWithMetadata(bucket, key, path string, metadata, tags map[string]string) error {
+	for putTask := range generatePutTasks(key, path) {
+		err := s.PutFileWithMetadata(bucket, putTask.key, putTask.path, metadata, tags)
 		if err != nil {
 			return err
 		}
