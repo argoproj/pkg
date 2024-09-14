@@ -214,8 +214,9 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 	return &s3cli, nil
 }
 
-// PutFile puts a single file to a bucket at the specified key
-func (s *s3client) PutFile(bucket, key, path string) error {
+
+// putFile puts a single file to a bucket at the specified key
+func (s *s3client) putFile(bucket, key, path string, opts minio.PutObjectOptions) error {
 	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": key, "path": path}).Info("Saving file to s3")
 	// NOTE: minio will detect proper mime-type based on file extension
 
@@ -225,7 +226,7 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 		return errors.WithStack(err)
 	}
 
-	_, err = s.minioClient.FPutObject(s.ctx, bucket, key, path, minio.PutObjectOptions{ServerSideEncryption: encOpts})
+	_, err = s.minioClient.FPutObject(s.ctx, bucket, key, path, opts)
 	if err != nil {
 		return errors.WithStack(err)
 	}
@@ -233,21 +234,13 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 }
 
 // PutFile puts a single file to a bucket at the specified key
+func (s *s3client) PutFile(bucket, key, path string) error {
+	return s.putFile(bucket, key, path, minio.PutObjectOptions{ServerSideEncryption: encOpts})
+}
+
+// PutFile puts a single file to a bucket at the specified key
 func (s *s3client) PutFileWithMetadata(bucket, key, path string, metadata, tags map[string]string) error {
-	log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": key, "path": path}).Info("Saving file to s3")
-	// NOTE: minio will detect proper mime-type based on file extension
-
-	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
-
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	_, err = s.minioClient.FPutObject(s.ctx, bucket, key, path, minio.PutObjectOptions{ServerSideEncryption: encOpts, UserMetadata: metadata, UserTags: tags})
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
+	return s.putFile(bucket, key, path, minio.PutObjectOptions{ServerSideEncryption: encOpts, UserMetadata: metadata, UserTags: tags})
 }
 
 func (s *s3client) BucketExists(bucketName string) (bool, error) {
