@@ -3,9 +3,9 @@ module github.com/argoproj/pkg
 go 1.14
 
 require (
-	github.com/aws/aws-sdk-go-v2/config v1.27.33
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.32
-	github.com/aws/aws-sdk-go-v2/service/sts v1.30.7
+	github.com/aws/aws-sdk-go-v2/config v1.27.35
+	github.com/aws/aws-sdk-go-v2/credentials v1.17.33
+	github.com/aws/aws-sdk-go-v2/service/sts v1.30.8
 	github.com/dustin/go-humanize v1.0.1
 	github.com/evilmonkeyinc/jsonpath v0.8.1
 	github.com/felixge/httpsnoop v1.0.4
