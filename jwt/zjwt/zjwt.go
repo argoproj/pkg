@@ -14,7 +14,7 @@ import (
 	"compress/gzip"
 	"encoding/base64"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 	"strings"
 )
@@ -96,7 +96,7 @@ func JWT(text string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	uncompressedPayload, err := ioutil.ReadAll(r)
+	uncompressedPayload, err := io.ReadAll(r)
 	if err != nil {
 		return "", err
 	}

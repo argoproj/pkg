@@ -2,7 +2,7 @@ package kubeclientmetrics
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"path"
 	"regexp"
@@ -103,7 +103,7 @@ func handleCreate(r *http.Request) ResourceInfo {
 		log.WithField("Kind", kind).Warnf("Unable to Process Create request: %v", err)
 		return ResourceInfo{}
 	}
-	body, err := ioutil.ReadAll(bodyIO)
+	body, err := io.ReadAll(bodyIO)
 	if err != nil {
 		log.WithField("Kind", kind).Warnf("Unable to Process Create request: %v", err)
 		return ResourceInfo{}
