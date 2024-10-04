@@ -26,7 +26,7 @@ darwin-build:
 .PHONY: lint
 lint:
 	go mod tidy
-	GOGC=$(LINT_GOGC) golangci-lint run --fix --verbose --concurrency $(LINT_CONCURRENCY) --deadline $(LINT_DEADLINE)
+	GOGC=$(LINT_GOGC) golangci-lint run --fix --verbose --concurrency $(LINT_CONCURRENCY) --timeout $(LINT_DEADLINE)
 
 .PHONY: test
 test: lint
