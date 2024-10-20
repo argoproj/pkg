@@ -31,7 +31,7 @@ func NewFilteredUnstructuredInformer(ctx context.Context, resource schema.GroupV
 				if tweakListOptions != nil {
 					tweakListOptions(&options)
 				}
-				return client.Resource(resource).Namespace(namespace).List(context.Background(), options)
+				return client.Resource(resource).Namespace(namespace).List(ctx, options)
 			},
 			WatchFunc: func(options metav1.ListOptions) (watch.Interface, error) {
 				if tweakListOptions != nil {
