@@ -4,14 +4,12 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/pkg/errors"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 )
 
 // IsRequestEntityTooLargeErr determines if err is an error which indicates the size of the request
 // was too large for the server to handle.
 func IsRequestEntityTooLargeErr(err error) bool {
-	err = errors.Cause(err)
 	switch t := err.(type) {
 	case apierr.APIStatus:
 		if t.Status().Code == http.StatusRequestEntityTooLarge {

@@ -6,14 +6,14 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"k8s.io/klog/v2"
-
-	"github.com/argoproj/pkg/errors"
 )
 
 // SetLogLevel parses and sets a logrus log level
 func SetLogLevel(logLevel string) {
 	level, err := log.ParseLevel(logLevel)
-	errors.CheckError(err)
+	if err != nil {
+		log.Fatal(err)
+	}
 	log.SetLevel(level)
 }
 

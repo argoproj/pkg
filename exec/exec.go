@@ -2,6 +2,7 @@ package exec
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -10,7 +11,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/argoproj/pkg/rand"
@@ -183,7 +183,7 @@ type WaitPIDOpts struct {
 // WaitPID waits for a non-child process id to exit
 func WaitPID(pid int, opts ...WaitPIDOpts) error {
 	if runtime.GOOS != "linux" {
-		return errors.Errorf("Platform '%s' unsupported", runtime.GOOS)
+		return fmt.Errorf("platform '%s' unsupported", runtime.GOOS)
 	}
 	var timeout time.Duration
 	pollInterval := time.Second
@@ -211,7 +211,7 @@ func WaitPID(pid int, opts ...WaitPIDOpts) error {
 				if os.IsNotExist(err) {
 					return nil
 				}
-				return errors.WithStack(err)
+				return err
 			}
 		case <-timoutCh:
 			return ErrWaitPIDTimeout
