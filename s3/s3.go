@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -18,7 +20,6 @@ import (
 	"github.com/minio/minio-go/v7/pkg/credentials"
 	"github.com/minio/minio-go/v7/pkg/encrypt"
 	"github.com/minio/minio-go/v7/pkg/sse"
-	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -173,7 +174,7 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 
 	credentials, err := GetCredentials(opts)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 
 	var bucketLookupType minio.BucketLookupType
@@ -187,18 +188,18 @@ func NewS3Client(ctx context.Context, opts S3ClientOpts) (S3Client, error) {
 	minioOpts := &minio.Options{Creds: credentials, Secure: s3cli.Secure, Transport: opts.Transport, Region: s3cli.Region, BucketLookup: bucketLookupType}
 	minioClient, err = minio.New(s3cli.Endpoint, minioOpts)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	if opts.Trace {
 		minioClient.TraceOn(log.StandardLogger().Out)
 	}
 
 	if opts.EncryptOpts.KmsKeyId != "" && opts.EncryptOpts.ServerSideCustomerKey != "" {
-		return nil, errors.New("EncryptOpts.KmsKeyId and EncryptOpts.SSECPassword cannot be set together")
+		return nil, fmt.Errorf("EncryptOpts.KmsKeyId and EncryptOpts.SSECPassword cannot be set together")
 	}
 
 	if opts.EncryptOpts.ServerSideCustomerKey != "" && !opts.Secure {
-		return nil, errors.New("Secure must be set if EncryptOpts.SSECPassword is set")
+		return nil, fmt.Errorf("Secure must be set if EncryptOpts.SSECPassword is set")
 	}
 
 	s3cli.ctx = ctx
@@ -215,12 +216,12 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
 
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	_, err = s.minioClient.FPutObject(s.ctx, bucket, key, path, minio.PutObjectOptions{ServerSideEncryption: encOpts})
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }
@@ -228,7 +229,7 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 func (s *s3client) BucketExists(bucketName string) (bool, error) {
 	log.WithField("bucket", bucketName).Info("Checking if bucket exists")
 	result, err := s.minioClient.BucketExists(s.ctx, bucketName)
-	return result, errors.WithStack(err)
+	return result, err
 }
 
 func (s *s3client) MakeBucket(bucketName string, opts minio.MakeBucketOptions) error {
@@ -236,11 +237,11 @@ func (s *s3client) MakeBucket(bucketName string, opts minio.MakeBucketOptions) e
 	err := s.minioClient.MakeBucket(s.ctx, bucketName, opts)
 
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	err = s.setBucketEnc(bucketName)
-	return errors.WithStack(err)
+	return err
 }
 
 type uploadTask struct {
@@ -294,12 +295,12 @@ func (s *s3client) GetFile(bucket, key, path string) error {
 
 	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 
 	err = s.minioClient.FGetObject(s.ctx, bucket, key, path, minio.GetObjectOptions{ServerSideEncryption: encOpts})
 	if err != nil {
-		return errors.WithStack(err)
+		return err
 	}
 	return nil
 }
@@ -310,16 +311,16 @@ func (s *s3client) OpenFile(bucket, key string) (io.ReadCloser, error) {
 
 	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	f, err := s.minioClient.GetObject(s.ctx, bucket, key, minio.GetObjectOptions{ServerSideEncryption: encOpts})
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	// the call above doesn't return an error in the case that the key doesn't exist, but by calling Stat() it will
 	_, err = f.Stat()
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 	return f, nil
 }
@@ -330,7 +331,7 @@ func (s *s3client) KeyExists(bucket, key string) (bool, error) {
 
 	encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, key)
 	if err != nil {
-		return false, errors.WithStack(err)
+		return false, err
 	}
 
 	_, err = s.minioClient.StatObject(s.ctx, bucket, key, minio.StatObjectOptions{ServerSideEncryption: encOpts})
@@ -341,7 +342,7 @@ func (s *s3client) KeyExists(bucket, key string) (bool, error) {
 		return false, nil
 	}
 
-	return false, errors.WithStack(err)
+	return false, err
 }
 
 func (s *s3client) Delete(bucket, key string) error {
@@ -363,12 +364,12 @@ func (s *s3client) GetDirectory(bucket, keyPrefix, path string) error {
 
 		encOpts, err := s.EncryptOpts.buildServerSideEnc(bucket, objKey)
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 
 		err = s.minioClient.FGetObject(s.ctx, bucket, objKey, localPath, minio.GetObjectOptions{ServerSideEncryption: encOpts})
 		if err != nil {
-			return errors.WithStack(err)
+			return err
 		}
 	}
 	return nil
@@ -394,7 +395,7 @@ func (s *s3client) IsDirectory(bucket, keyPrefix string) (bool, error) {
 	objCh := s.minioClient.ListObjects(s.ctx, bucket, listOpts)
 	for obj := range objCh {
 		if obj.Err != nil {
-			return false, errors.WithStack(obj.Err)
+			return false, obj.Err
 		} else {
 			return true, nil
 		}
@@ -422,7 +423,7 @@ func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 	objCh := s.minioClient.ListObjects(s.ctx, bucket, listOpts)
 	for obj := range objCh {
 		if obj.Err != nil {
-			return nil, errors.WithStack(obj.Err)
+			return nil, obj.Err
 		}
 		if strings.HasSuffix(obj.Key, "/") {
 			// When a dir is created through AWS S3 console, a nameless obj will be created
@@ -440,8 +441,8 @@ func (s *s3client) ListDirectory(bucket, keyPrefix string) ([]string, error) {
 
 // IsS3ErrCode returns if the supplied error is of a specific S3 error code
 func IsS3ErrCode(err error, code string) bool {
-	err = errors.Cause(err)
-	if minioErr, ok := err.(minio.ErrorResponse); ok {
+	var minioErr minio.ErrorResponse
+	if errors.As(err, &minioErr) {
 		return minioErr.Code == code
 	}
 	return false
@@ -481,7 +482,7 @@ func (e *EncryptOpts) buildServerSideEnc(bucket, key string) (encrypt.ServerSide
 		encryptionCtx, err := parseKMSEncCntx(e.KmsEncryptionContext)
 
 		if err != nil {
-			return nil, errors.Wrap(err, "failed to parse KMS encryption context")
+			return nil, fmt.Errorf("failed to parse KMS encryption context: %w", err)
 		}
 
 		if encryptionCtx == nil {
@@ -498,7 +499,7 @@ func (e *EncryptOpts) buildServerSideEnc(bucket, key string) (encrypt.ServerSide
 		kms, err := encrypt.NewSSEKMS(e.KmsKeyId, encryptionCtx)
 
 		if err != nil {
-			return nil, errors.WithStack(err)
+			return nil, err
 		}
 
 		return kms, nil
@@ -515,10 +516,10 @@ func parseKMSEncCntx(kmsEncCntx string) (*string, error) {
 
 	jsonKMSEncryptionContext, err := json.Marshal(json.RawMessage(kmsEncCntx))
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to marshal KMS encryption context")
+		return nil, fmt.Errorf("failed to marshal KMS encryption context: %w", err)
 	}
 
-	parsedKMSEncryptionContext := base64.StdEncoding.EncodeToString([]byte(jsonKMSEncryptionContext))
+	parsedKMSEncryptionContext := base64.StdEncoding.EncodeToString(jsonKMSEncryptionContext)
 
 	return &parsedKMSEncryptionContext, nil
 }
