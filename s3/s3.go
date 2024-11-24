@@ -12,6 +12,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/credentials/stscreds"
@@ -31,7 +32,7 @@ type S3Client interface {
 
 	// PutDirectory puts a complete directory into a bucket key prefix, with each file in the directory
 	// a separate key in the bucket.
-	PutDirectory(bucket, key, path string) error
+	PutDirectory(bucket, key, path string, maxParallel ...int) error
 
 	// GetFile downloads a file to a local file path
 	GetFile(bucket, key, path string) error
@@ -59,6 +60,9 @@ type S3Client interface {
 
 	// MakeBucket creates a bucket with name bucketName and options opts
 	MakeBucket(bucketName string, opts minio.MakeBucketOptions) error
+
+	// MultipartUpload uploads a file in multiple parts.
+	MultipartUpload(bucket, key, path string, objectSize int64) error
 }
 
 type EncryptOpts struct {
@@ -279,12 +283,32 @@ func generatePutTasks(keyPrefix, rootPath string) chan uploadTask {
 
 // PutDirectory puts a complete directory into a bucket key prefix, with each file in the directory
 // a separate key in the bucket.
-func (s *s3client) PutDirectory(bucket, key, path string) error {
+func (s *s3client) PutDirectory(bucket, key, path string, maxParallel ...int) error {
+	parallel := 10 // 默认并发数
+	if len(maxParallel) > 0 {
+		parallel = maxParallel[0]
+	}
+	parallelNum := make(chan string, parallel)
+	errCh := make(chan error, parallel)
+	var wg sync.WaitGroup
 	for putTask := range generatePutTasks(key, path) {
-		err := s.PutFile(bucket, putTask.key, putTask.path)
-		if err != nil {
-			return err
-		}
+		parallelNum <- putTask.key
+		wg.Add(1)
+		go func(putTask uploadTask) {
+			defer wg.Done()
+			err := s.PutFile(bucket, putTask.key, putTask.path)
+			if err != nil {
+				log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": putTask.key, "path": putTask.path}).Error("Error uploading file to s3")
+				errCh <- err
+			}
+		}(putTask)
+	}
+	close(parallelNum)
+	wg.Wait()
+	close(errCh)
+	err := errorFromChannel(errCh)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -522,4 +546,13 @@ func parseKMSEncCntx(kmsEncCntx string) (*string, error) {
 	parsedKMSEncryptionContext := base64.StdEncoding.EncodeToString(jsonKMSEncryptionContext)
 
 	return &parsedKMSEncryptionContext, nil
+}
+
+func errorFromChannel(errCh <-chan error) error {
+	select {
+	case err := <-errCh:
+		return err
+	default:
+	}
+	return nil
 }
