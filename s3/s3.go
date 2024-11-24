@@ -60,9 +60,6 @@ type S3Client interface {
 
 	// MakeBucket creates a bucket with name bucketName and options opts
 	MakeBucket(bucketName string, opts minio.MakeBucketOptions) error
-
-	// MultipartUpload uploads a file in multiple parts.
-	MultipartUpload(bucket, key, path string, objectSize int64) error
 }
 
 type EncryptOpts struct {
