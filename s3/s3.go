@@ -281,7 +281,7 @@ func generatePutTasks(keyPrefix, rootPath string) chan uploadTask {
 // PutDirectory puts a complete directory into a bucket key prefix, with each file in the directory
 // a separate key in the bucket.
 func (s *s3client) PutDirectory(bucket, key, path string, maxParallel ...int) error {
-	parallel := 10 // 默认并发数
+	parallel := 10 // Default number of concurrencies
 	if len(maxParallel) > 0 {
 		parallel = maxParallel[0]
 	}
