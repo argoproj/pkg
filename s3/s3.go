@@ -286,9 +286,10 @@ func (s *s3client) PutDirectory(bucket, key, path string, maxParallel ...int) er
 		parallel = maxParallel[0]
 	}
 	parallelNum := make(chan string, parallel)
-	errCh := make(chan error, parallel)
+	tasks := generatePutTasks(key, path)
+	errCh := make(chan error, len(tasks))
 	var wg sync.WaitGroup
-	for putTask := range generatePutTasks(key, path) {
+	for putTask := range tasks {
 		parallelNum <- putTask.key
 		wg.Add(1)
 		go func(putTask uploadTask) {
@@ -298,6 +299,7 @@ func (s *s3client) PutDirectory(bucket, key, path string, maxParallel ...int) er
 				log.WithFields(log.Fields{"endpoint": s.Endpoint, "bucket": bucket, "key": putTask.key, "path": putTask.path}).Error("Error uploading file to s3")
 				errCh <- err
 			}
+			<-parallelNum
 		}(putTask)
 	}
 	close(parallelNum)
