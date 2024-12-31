@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/argoproj/pkg/rand"
 )
@@ -20,22 +21,22 @@ func TestIsDirectory(t *testing.T) {
 	testDir := filepath.Dir(filename)
 
 	isDir, err := IsDirectory(testDir)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.True(t, isDir)
 
 	isDir, err = IsDirectory(filename)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.False(t, isDir)
 
 	isDir, err = IsDirectory("doesnt-exist")
-	assert.NotNil(t, err)
+	require.Error(t, err)
 	assert.False(t, isDir)
 }
 
 func TestExists(t *testing.T) {
 	assert.True(t, Exists("/"))
 	path, err := rand.RandString(10)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	randFilePath := fmt.Sprintf("/%s", path)
 	assert.False(t, Exists(randFilePath))
 }

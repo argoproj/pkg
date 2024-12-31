@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestParseDuration tests TestParseDuration
@@ -24,17 +25,17 @@ func TestParseDuration(t *testing.T) {
 	}
 	for _, data := range testdata {
 		dur, err := ParseDuration(data.duration)
-		assert.Nil(t, err)
+		require.NoError(t, err)
 		assert.Equal(t, dur.Nanoseconds(), data.xVal.Nanoseconds())
 	}
 	_, err := ParseDuration("1z")
-	assert.NotNil(t, err)
+	assert.Error(t, err)
 }
 
 // TestParseSince tests parsing of since strings
 func TestParseSince(t *testing.T) {
 	oneDayAgo, err := ParseSince("1d")
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	yesterday := time.Now().UTC().Add(-24 * time.Hour)
 	assert.Equal(t, yesterday.Minute(), oneDayAgo.Minute())
 }
