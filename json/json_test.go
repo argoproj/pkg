@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestDisallowUnknownFields tests ability to disallow unknown fields
@@ -20,17 +21,17 @@ func TestDisallowUnknownFields(t *testing.T) {
 	var obj mystruct
 
 	err := Unmarshal(jsonWithUnknownField, &obj)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "foo", obj.MyField)
 
 	obj = mystruct{}
 	err = Unmarshal(jsonWithUnknownField, &obj, DisallowUnknownFields)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, "foo", obj.MyField)
 
 	obj = mystruct{}
 	err = UnmarshalStrict(jsonWithUnknownField, &obj)
-	assert.Error(t, err)
+	require.Error(t, err)
 	assert.Equal(t, "foo", obj.MyField)
 }
 

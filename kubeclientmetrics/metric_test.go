@@ -23,7 +23,7 @@ type fakeWrapper struct {
 func (f fakeWrapper) RoundTrip(r *http.Request) (*http.Response, error) {
 	resp := httptest.NewRecorder()
 	resp.Code = 201
-	assert.Equal(f.t, f.currentCount, f.expectedCount)
+	assert.Equal(f.t, f.expectedCount, f.currentCount)
 	return resp.Result(), nil
 }
 
