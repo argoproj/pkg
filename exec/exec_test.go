@@ -9,6 +9,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/sirupsen/logrus/hooks/test"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRunCommand(t *testing.T) {
@@ -17,7 +18,7 @@ func TestRunCommand(t *testing.T) {
 	defer log.SetLevel(log.InfoLevel)
 
 	message, err := RunCommand("echo", CmdOpts{Redactor: Redact([]string{"world"})}, "hello world")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "hello world", message)
 
 	assert.Len(t, hook.Entries, 2)
@@ -41,8 +42,8 @@ func TestRunCommandTimeout(t *testing.T) {
 	defer log.SetLevel(log.InfoLevel)
 
 	output, err := RunCommand("sh", CmdOpts{Timeout: 500 * time.Millisecond}, "-c", "echo hello world && echo my-error >&2 && sleep 2")
-	assert.Equal(t, output, "hello world")
-	assert.EqualError(t, err, "`sh -c echo hello world && echo my-error >&2 && sleep 2` failed timeout after 500ms")
+	assert.Equal(t, "hello world", output)
+	require.EqualError(t, err, "`sh -c echo hello world && echo my-error >&2 && sleep 2` failed timeout after 500ms")
 
 	assert.Len(t, hook.Entries, 3)
 
@@ -72,14 +73,14 @@ func TestRunCommandSignal(t *testing.T) {
 	var timeoutBehavior = TimeoutBehavior{Signal: syscall.SIGTERM, ShouldWait: true}
 	output, err := RunCommand("sh", CmdOpts{Timeout: 200 * time.Millisecond, TimeoutBehavior: timeoutBehavior}, "-c", "trap 'trap - 15 && echo captured && exit' 15 && sleep 2")
 	assert.Equal(t, "captured", output)
-	assert.EqualError(t, err, "`sh -c trap 'trap - 15 && echo captured && exit' 15 && sleep 2` failed timeout after 200ms")
+	require.EqualError(t, err, "`sh -c trap 'trap - 15 && echo captured && exit' 15 && sleep 2` failed timeout after 200ms")
 
 	assert.Len(t, hook.Entries, 3)
 }
 
 func TestTrimmedOutput(t *testing.T) {
 	message, err := RunCommand("printf", CmdOpts{}, "hello world")
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "hello world", message)
 }
 
@@ -90,7 +91,7 @@ func TestRunCommandExitErr(t *testing.T) {
 
 	output, err := RunCommand("sh", CmdOpts{Redactor: Redact([]string{"world"})}, "-c", "echo hello world && echo my-error >&2 && exit 1")
 	assert.Equal(t, "hello world", output)
-	assert.EqualError(t, err, "`sh -c echo hello ****** && echo my-error >&2 && exit 1` failed exit status 1: my-error")
+	require.EqualError(t, err, "`sh -c echo hello ****** && echo my-error >&2 && exit 1` failed exit status 1: my-error")
 
 	assert.Len(t, hook.Entries, 3)
 
@@ -125,7 +126,7 @@ func TestRunInDir(t *testing.T) {
 	cmd := exec.Command("pwd")
 	cmd.Dir = "/"
 	message, err := RunCommandExt(cmd, CmdOpts{})
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "/", message)
 }
 

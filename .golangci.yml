@@ -5,6 +5,13 @@ run:
 issues:
   exclude-dirs:
     - vendor
+linters:
+  enable:
+    - testifylint
 linters-settings:
   goimports:
     local-prefixes: github.com/argoproj/pkg
+  testifylint:
+    enable-all: true
+    disable:
+      - float-compare
