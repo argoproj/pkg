@@ -91,6 +91,7 @@ type S3ClientOpts struct {
 	RoleSessionName string
 	UseSDKCreds     bool
 	EncryptOpts     EncryptOpts
+	SendContentMd5  bool
 }
 
 type s3client struct {
@@ -219,7 +220,7 @@ func (s *s3client) PutFile(bucket, key, path string) error {
 		return err
 	}
 
-	_, err = s.minioClient.FPutObject(s.ctx, bucket, key, path, minio.PutObjectOptions{ServerSideEncryption: encOpts})
+	_, err = s.minioClient.FPutObject(s.ctx, bucket, key, path, minio.PutObjectOptions{SendContentMd5: s.SendContentMd5, ServerSideEncryption: encOpts})
 	if err != nil {
 		return err
 	}
