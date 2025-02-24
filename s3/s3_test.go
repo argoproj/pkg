@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 // TestNewS3Client tests the s3 constructor
@@ -25,7 +26,7 @@ func TestNewS3Client(t *testing.T) {
 		EncryptOpts:     EncryptOpts{Enabled: true, ServerSideCustomerKey: "", KmsKeyId: "", KmsEncryptionContext: ""},
 	}
 	s3If, err := NewS3Client(context.Background(), opts)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	s3cli := s3If.(*s3client)
 	assert.Equal(t, opts.Endpoint, s3cli.Endpoint)
 	assert.Equal(t, opts.Region, s3cli.Region)
@@ -50,7 +51,7 @@ func TestNewS3ClientEphemeral(t *testing.T) {
 		SessionToken: "sessionToken",
 	}
 	s3If, err := NewS3Client(context.Background(), opts)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 	s3cli := s3If.(*s3client)
 	assert.Equal(t, opts.Endpoint, s3cli.Endpoint)
 	assert.Equal(t, opts.Region, s3cli.Region)
@@ -69,7 +70,7 @@ func TestNewS3ClientWithDiff(t *testing.T) {
 			Trace:    true,
 		}
 		s3If, err := NewS3Client(context.Background(), opts)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		s3cli := s3If.(*s3client)
 		assert.Equal(t, opts.Endpoint, s3cli.Endpoint)
 		assert.Equal(t, opts.Region, s3cli.Region)
@@ -86,7 +87,7 @@ func TestNewS3ClientWithDiff(t *testing.T) {
 			RoleARN:  "01234567890123456789",
 		}
 		s3If, err := NewS3Client(context.Background(), opts)
-		assert.NoError(t, err)
+		require.NoError(t, err)
 		s3cli := s3If.(*s3client)
 		assert.Equal(t, opts.Endpoint, s3cli.Endpoint)
 		assert.Equal(t, opts.Region, s3cli.Region)
