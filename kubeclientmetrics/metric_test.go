@@ -289,6 +289,9 @@ func TestGetRequest(t *testing.T) {
 	executed := false
 	config := &rest.Config{
 		Host: ts.URL,
+		ContentConfig: rest.ContentConfig{
+			ContentType: "application/json",
+		},
 	}
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
@@ -313,6 +316,9 @@ func TestListRequest(t *testing.T) {
 	executed := false
 	config := &rest.Config{
 		Host: ts.URL,
+		ContentConfig: rest.ContentConfig{
+			ContentType: "application/json",
+		},
 	}
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
@@ -337,6 +343,9 @@ func TestCreateRequest(t *testing.T) {
 	executed := false
 	config := &rest.Config{
 		Host: ts.URL,
+		ContentConfig: rest.ContentConfig{
+			ContentType: "application/json",
+		},
 	}
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
@@ -367,6 +376,9 @@ func TestDeleteRequest(t *testing.T) {
 	executed := false
 	config := &rest.Config{
 		Host: ts.URL,
+		ContentConfig: rest.ContentConfig{
+			ContentType: "application/json",
+		},
 	}
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
@@ -391,6 +403,9 @@ func TestPatchRequest(t *testing.T) {
 	executed := false
 	config := &rest.Config{
 		Host: ts.URL,
+		ContentConfig: rest.ContentConfig{
+			ContentType: "application/json",
+		},
 	}
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
@@ -415,6 +430,9 @@ func TestUpdateRequest(t *testing.T) {
 	executed := false
 	config := &rest.Config{
 		Host: ts.URL,
+		ContentConfig: rest.ContentConfig{
+			ContentType: "application/json",
+		},
 	}
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
@@ -444,6 +462,9 @@ func TestUnknownRequest(t *testing.T) {
 	executed := false
 	config := &rest.Config{
 		Host: ts.URL,
+		ContentConfig: rest.ContentConfig{
+			ContentType: "application/json",
+		},
 	}
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
