@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/felixge/httpsnoop"
+	//nolint:staticcheck // SA1019 Can't migrate due to grpc gateway using old package and major version bump needed
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	log "github.com/sirupsen/logrus"
