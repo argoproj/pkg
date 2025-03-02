@@ -28,6 +28,15 @@ func (f fakeWrapper) RoundTrip(r *http.Request) (*http.Response, error) {
 	return resp.Result(), nil
 }
 
+func NewConfig(url string) *rest.Config {
+	return &rest.Config{
+		Host: url,
+		ContentConfig: rest.ContentConfig{
+			ContentType: "application/json",
+		},
+	}
+}
+
 // TestWrappingTwice Ensures that the config doesn't lose any previous wrappers and the previous wrapper
 // gets executed first
 func TestAddMetricsTransportWrapperWrapTwice(t *testing.T) {
@@ -287,12 +296,7 @@ func TestGetRequest(t *testing.T) {
 	}))
 	defer ts.Close()
 	executed := false
-	config := &rest.Config{
-		Host: ts.URL,
-		ContentConfig: rest.ContentConfig{
-			ContentType: "application/json",
-		},
-	}
+	config := NewConfig(ts.URL)
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
 		assert.Equal(t, "replicasets", info.Kind)
@@ -314,12 +318,7 @@ func TestListRequest(t *testing.T) {
 	}))
 	defer ts.Close()
 	executed := false
-	config := &rest.Config{
-		Host: ts.URL,
-		ContentConfig: rest.ContentConfig{
-			ContentType: "application/json",
-		},
-	}
+	config := NewConfig(ts.URL)
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
 		assert.Equal(t, "replicasets", info.Kind)
@@ -341,12 +340,7 @@ func TestCreateRequest(t *testing.T) {
 	}))
 	defer ts.Close()
 	executed := false
-	config := &rest.Config{
-		Host: ts.URL,
-		ContentConfig: rest.ContentConfig{
-			ContentType: "application/json",
-		},
-	}
+	config := NewConfig(ts.URL)
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
 		assert.Equal(t, "replicasets", info.Kind)
@@ -374,12 +368,7 @@ func TestDeleteRequest(t *testing.T) {
 	}))
 	defer ts.Close()
 	executed := false
-	config := &rest.Config{
-		Host: ts.URL,
-		ContentConfig: rest.ContentConfig{
-			ContentType: "application/json",
-		},
-	}
+	config := NewConfig(ts.URL)
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
 		assert.Equal(t, "replicasets", info.Kind)
@@ -401,12 +390,7 @@ func TestPatchRequest(t *testing.T) {
 	}))
 	defer ts.Close()
 	executed := false
-	config := &rest.Config{
-		Host: ts.URL,
-		ContentConfig: rest.ContentConfig{
-			ContentType: "application/json",
-		},
-	}
+	config := NewConfig(ts.URL)
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
 		assert.Equal(t, "replicasets", info.Kind)
@@ -428,12 +412,7 @@ func TestUpdateRequest(t *testing.T) {
 	}))
 	defer ts.Close()
 	executed := false
-	config := &rest.Config{
-		Host: ts.URL,
-		ContentConfig: rest.ContentConfig{
-			ContentType: "application/json",
-		},
-	}
+	config := NewConfig(ts.URL)
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
 		assert.Equal(t, "replicasets", info.Kind)
@@ -460,12 +439,7 @@ func TestUnknownRequest(t *testing.T) {
 	}))
 	defer ts.Close()
 	executed := false
-	config := &rest.Config{
-		Host: ts.URL,
-		ContentConfig: rest.ContentConfig{
-			ContentType: "application/json",
-		},
-	}
+	config := NewConfig(ts.URL)
 	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
 		assert.Equal(t, Unknown, info.Verb)
