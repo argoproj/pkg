@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 type testStruct struct {
@@ -40,8 +41,8 @@ func TestMarshalerIncludeFields(t *testing.T) {
 
 	out, err := m.Marshal(testVal)
 
-	assert.Nil(t, err)
-	assert.Equal(t, `{"metadata":{"name":"test"},"spec":{"source":{"path":"test_path"}}}`, string(out))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"metadata":{"name":"test"},"spec":{"source":{"path":"test_path"}}}`, string(out))
 }
 
 func TestMarshalerExcludeFields(t *testing.T) {
@@ -51,8 +52,8 @@ func TestMarshalerExcludeFields(t *testing.T) {
 
 	out, err := m.Marshal(testVal)
 
-	assert.Nil(t, err)
-	assert.Equal(t, `{"metadata":{},"spec":{"source":{"path":"test_path"}},"status":{"message":"Failed"}}`, string(out))
+	require.NoError(t, err)
+	assert.JSONEq(t, `{"metadata":{},"spec":{"source":{"path":"test_path"}},"status":{"message":"Failed"}}`, string(out))
 }
 
 func TestMarshalerSSE(t *testing.T) {
@@ -60,7 +61,7 @@ func TestMarshalerSSE(t *testing.T) {
 
 	out, err := m.Marshal(testVal)
 
-	assert.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, `data: {"metadata":{"name":"test"},"spec":{"source":{"path":"test_path"}},"status":{"message":"Failed"}} 
 
 `, string(out))
@@ -89,7 +90,7 @@ func TestFlushSuccess(t *testing.T) {
 	f := flusher{w: bufio.NewWriter(&buf)}
 	flush(&f)
 
-	assert.Equal(t, true, flushed)
+	assert.True(t, flushed)
 }
 
 func TestFlushFailed(t *testing.T) {
@@ -98,5 +99,5 @@ func TestFlushFailed(t *testing.T) {
 	f := flusher{}
 	flush(&f)
 
-	assert.Equal(t, false, flushed)
+	assert.False(t, flushed)
 }
