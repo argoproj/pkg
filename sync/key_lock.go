@@ -10,35 +10,22 @@ type KeyLock interface {
 }
 
 type keyLock struct {
-	guard sync.RWMutex
-	locks map[string]*sync.RWMutex
+	locks sync.Map
 }
 
 func NewKeyLock() KeyLock {
 	return &keyLock{
-		guard: sync.RWMutex{},
-		locks: map[string]*sync.RWMutex{},
+		locks: sync.Map{},
 	}
 }
 
 func (l *keyLock) getLock(key string) *sync.RWMutex {
-	l.guard.RLock()
-	if lock, ok := l.locks[key]; ok {
-		l.guard.RUnlock()
-		return lock
-	}
-
-	l.guard.RUnlock()
-	l.guard.Lock()
-
-	if lock, ok := l.locks[key]; ok {
-		l.guard.Unlock()
-		return lock
+	if lock, ok := l.locks.Load(key); ok {
+		return lock.(*sync.RWMutex)
 	}
 
 	lock := &sync.RWMutex{}
-	l.locks[key] = lock
-	l.guard.Unlock()
+	l.locks.Store(key, lock)
 	return lock
 }
 
