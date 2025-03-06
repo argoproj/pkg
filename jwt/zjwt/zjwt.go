@@ -7,6 +7,9 @@
 // as long as they are smaller than the zJWT representation.
 //
 // To help differentiate, zJWTs start with "zJWT/v1:"
+//
+// Deprecated: this package is not used by any Argo project and will be removed in the next major version of this
+// library.
 package zjwt
 
 import (
@@ -34,6 +37,8 @@ var featureFlag = os.Getenv("ARGO_ZJWT_FEATURE_FLAG")
 var minSize = 3000
 
 // ZJWT turns a JWT into either a zJWT or return the original JWT, whichever is smaller.
+// Deprecated: this functions is not used by any Argo project and will be removed in the next major version of this
+// library.
 func ZJWT(text string) (string, error) {
 	if featureFlag == "never" || featureFlag != "always" && len(text) < minSize {
 		return text, nil
@@ -73,6 +78,8 @@ func ZJWT(text string) (string, error) {
 }
 
 // JWT expands either a zJWT or a JWT to a JWT.
+// Deprecated: this functions is not used by any Argo project and will be removed in the next major version of this
+// library.
 func JWT(text string) (string, error) {
 	parts := strings.SplitN(text, ".", 4)
 	if len(parts) == 3 {
