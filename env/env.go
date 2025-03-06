@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// Deprecated: this functions is not used by any Argo project and will be removed in the next major version of this
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
 // library.
 func LookupEnvStringOr(key string, o string) string {
 	v, found := os.LookupEnv(key)
@@ -19,7 +19,7 @@ func LookupEnvStringOr(key string, o string) string {
 	return o
 }
 
-// Deprecated: this functions is not used by any Argo project and will be removed in the next major version of this
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
 // library.
 func LookupEnvDurationOr(key string, o time.Duration) time.Duration {
 	v, found := os.LookupEnv(key)
@@ -34,7 +34,7 @@ func LookupEnvDurationOr(key string, o time.Duration) time.Duration {
 	return o
 }
 
-// Deprecated: this functions is not used by any Argo project and will be removed in the next major version of this
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
 // library.
 func LookupEnvIntOr(key string, o int) int {
 	v, found := os.LookupEnv(key)
@@ -49,7 +49,7 @@ func LookupEnvIntOr(key string, o int) int {
 	return o
 }
 
-// Deprecated: this functions is not used by any Argo project and will be removed in the next major version of this
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
 // library.
 func LookupEnvFloatOr(key string, o float64) float64 {
 	v, found := os.LookupEnv(key)

@@ -37,7 +37,7 @@ var featureFlag = os.Getenv("ARGO_ZJWT_FEATURE_FLAG")
 var minSize = 3000
 
 // ZJWT turns a JWT into either a zJWT or return the original JWT, whichever is smaller.
-// Deprecated: this functions is not used by any Argo project and will be removed in the next major version of this
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
 // library.
 func ZJWT(text string) (string, error) {
 	if featureFlag == "never" || featureFlag != "always" && len(text) < minSize {
@@ -78,7 +78,7 @@ func ZJWT(text string) (string, error) {
 }
 
 // JWT expands either a zJWT or a JWT to a JWT.
-// Deprecated: this functions is not used by any Argo project and will be removed in the next major version of this
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
 // library.
 func JWT(text string) (string, error) {
 	parts := strings.SplitN(text, ".", 4)
