@@ -10,11 +10,10 @@ import (
 	"time"
 
 	"github.com/felixge/httpsnoop"
-	//nolint:staticcheck // SA1019 Can't migrate due to grpc gateway using old package and major version bump needed
-	"github.com/golang/protobuf/proto"
-	"github.com/grpc-ecosystem/grpc-gateway/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
+	"google.golang.org/protobuf/proto"
 )
 
 type messageMarshaler struct {
@@ -36,7 +35,7 @@ func (m *messageMarshaler) NewEncoder(w io.Writer) runtime.Encoder {
 	return nil
 }
 
-func (m *messageMarshaler) ContentType() string {
+func (m *messageMarshaler) ContentType(v interface{}) string {
 	if m.isSSE {
 		return "text/event-stream"
 	} else {
