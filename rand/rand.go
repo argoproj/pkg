@@ -6,6 +6,7 @@ import (
 )
 
 // RandString returns a cryptographically-secure pseudo-random alpha-numeric string of a given length
+// Deprecated: this function is trivial and should be implemented by the caller instead.
 func RandString(n int) (string, error) {
 	bytes := make([]byte, n/2+1) // we need one extra letter to discard
 	if _, err := rand.Read(bytes); err != nil {
