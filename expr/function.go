@@ -1,3 +1,5 @@
+// Deprecated: this package is not used by any Argo project and will be removed in the next major version of this
+// library.
 package expr
 
 import (
@@ -9,6 +11,8 @@ import (
 	"github.com/evilmonkeyinc/jsonpath"
 )
 
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
+// library.
 func GetExprEnvFunctionMap() map[string]interface{} {
 	return map[string]interface{}{
 		"asInt":    AsInt,
@@ -18,10 +22,14 @@ func GetExprEnvFunctionMap() map[string]interface{} {
 	}
 }
 
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
+// library.
 func AsStr(val interface{}) interface{} {
 	return fmt.Sprintf("%v", val)
 }
 
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
+// library.
 func JsonPath(jsonStr string, path string) interface{} {
 	var jsonMap interface{}
 	err := json.Unmarshal([]byte(jsonStr), &jsonMap)
@@ -35,6 +43,8 @@ func JsonPath(jsonStr string, path string) interface{} {
 	return value
 }
 
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
+// library.
 func AsInt(in interface{}) int64 {
 	switch i := in.(type) {
 	case float64:
@@ -71,6 +81,8 @@ func AsInt(in interface{}) int64 {
 	panic(fmt.Sprintf("asInt() not supported on %v %v", reflect.TypeOf(in), in))
 }
 
+// Deprecated: this function is not used by any Argo project and will be removed in the next major version of this
+// library.
 func AsFloat(in interface{}) float64 {
 	switch i := in.(type) {
 	case float64:
