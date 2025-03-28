@@ -14,7 +14,7 @@ var durationRegex = regexp.MustCompile(`^(\d+)([smhd])$`)
 func ParseDuration(duration string) (*time.Duration, error) {
 	matches := durationRegex.FindStringSubmatch(duration)
 	if len(matches) != 3 {
-		return nil, fmt.Errorf("Invalid since format '%s'. Expected format <duration><unit> (e.g. 3h)\n", duration)
+		return nil, fmt.Errorf("invalid since format '%s', expected format <duration><unit> (e.g. 3h)", duration)
 	}
 	amount, err := strconv.ParseInt(matches[1], 10, 64)
 	if err != nil {

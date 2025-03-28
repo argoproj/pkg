@@ -323,7 +323,7 @@ func TestListRequest(t *testing.T) {
 		assert.Equal(t, expectedStatusCode, info.StatusCode)
 		assert.Equal(t, "replicasets", info.Kind)
 		assert.Equal(t, metav1.NamespaceDefault, info.Namespace)
-		assert.Equal(t, "", info.Name)
+		assert.Empty(t, info.Name)
 		assert.Equal(t, List, info.Verb)
 		executed = true
 		return nil
