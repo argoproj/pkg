@@ -1,6 +1,7 @@
 module github.com/argoproj/pkg/v2
 
 go 1.23.5
+toolchain go1.24.1
 
 require (
 	github.com/felixge/httpsnoop v1.0.4
@@ -42,8 +43,8 @@ require (
 	golang.org/x/term v0.30.0 // indirect
 	golang.org/x/text v0.23.0 // indirect
 	golang.org/x/time v0.7.0 // indirect
-	google.golang.org/genproto v0.0.0-20200513103714-09dca8ec2884 // indirect
-	google.golang.org/grpc v1.33.1 // indirect
+	google.golang.org/genproto v0.0.0-20230410155749-daa745c078e1 // indirect
+	google.golang.org/grpc v1.56.3 // indirect
 	google.golang.org/protobuf v1.35.1 // indirect
 	gopkg.in/evanphx/json-patch.v4 v4.12.0 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect
