@@ -1,6 +1,7 @@
 module github.com/argoproj/pkg/v2
 
 go 1.23.5
+toolchain go1.24.1
 
 require (
 	github.com/felixge/httpsnoop v1.0.4
@@ -8,7 +9,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/sirupsen/logrus v1.9.3
 	github.com/stretchr/testify v1.10.0
-	golang.org/x/net v0.37.0
+	golang.org/x/net v0.38.0
 	k8s.io/api v0.32.2
 	k8s.io/apimachinery v0.32.2
 	k8s.io/client-go v0.32.2
