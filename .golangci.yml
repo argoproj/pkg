@@ -1,17 +1,32 @@
-# https://golangci-lint.run/usage/quick-start/
+version: "2"
 run:
   concurrency: 4
-  timeout: 5m
-issues:
-  exclude-dirs:
-    - vendor
 linters:
   enable:
     - testifylint
-linters-settings:
-  goimports:
-    local-prefixes: github.com/argoproj/pkg/v2
-  testifylint:
-    enable-all: true
-    disable:
-      - float-compare
+  settings:
+    testifylint:
+      enable-all: true
+      disable:
+        - float-compare
+  exclusions:
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - vendor
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/argoproj/pkg/v2
+  exclusions:
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
