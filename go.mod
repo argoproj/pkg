@@ -9,7 +9,7 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/grpc-ecosystem/grpc-gateway v1.16.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.11.0
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/net v0.43.0
 	k8s.io/api v0.32.2
 	k8s.io/apimachinery v0.32.2
