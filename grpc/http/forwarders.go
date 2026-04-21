@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -14,7 +15,6 @@ import (
 	"github.com/golang/protobuf/proto"
 	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/net/context"
 )
 
 type messageMarshaler struct {
