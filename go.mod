@@ -5,7 +5,7 @@ go 1.25.0
 toolchain go1.25.9
 
 require (
-	github.com/felixge/httpsnoop v1.0.4
+	github.com/felixge/httpsnoop v1.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.29.0
 	github.com/sirupsen/logrus v1.9.4
 	github.com/stretchr/testify v1.11.1
