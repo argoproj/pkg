@@ -7,7 +7,7 @@ toolchain go1.25.9
 require (
 	github.com/felixge/httpsnoop v1.1.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.30.0
-	github.com/sirupsen/logrus v1.9.4
+	github.com/sirupsen/logrus v1.10.0
 	github.com/stretchr/testify v1.12.0
 	google.golang.org/protobuf v1.36.12
 	k8s.io/api v0.35.4
