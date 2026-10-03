@@ -8,8 +8,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -361,6 +363,43 @@ func TestCreateRequest(t *testing.T) {
 	assert.True(t, executed)
 }
 
+// client-go sends built-in types as protobuf unless JSON is configured.
+func TestCreateRequestProtobuf(t *testing.T) {
+	expectedStatusCode := 201
+	var contentType string
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		contentType = r.Header.Get("Content-Type")
+		w.WriteHeader(expectedStatusCode)
+	}))
+	defer ts.Close()
+	executed := false
+	config := &rest.Config{
+		Host: ts.URL,
+		ContentConfig: rest.ContentConfig{
+			ContentType: runtime.ContentTypeProtobuf,
+		},
+	}
+	newConfig := AddMetricsTransportWrapper(config, func(info ResourceInfo) error {
+		assert.Equal(t, expectedStatusCode, info.StatusCode)
+		assert.Equal(t, "replicasets", info.Kind)
+		assert.Equal(t, metav1.NamespaceDefault, info.Namespace)
+		assert.Equal(t, "test", info.Name)
+		assert.Equal(t, Create, info.Verb)
+		executed = true
+		return nil
+	})
+	client := kubernetes.NewForConfigOrDie(newConfig)
+	rs := &appsv1.ReplicaSet{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "test",
+			Namespace: metav1.NamespaceDefault,
+		},
+	}
+	_, _ = client.AppsV1().ReplicaSets(metav1.NamespaceDefault).Create(context.Background(), rs, metav1.CreateOptions{})
+	assert.Equal(t, runtime.ContentTypeProtobuf, contentType)
+	assert.True(t, executed)
+}
+
 func TestDeleteRequest(t *testing.T) {
 	expectedStatusCode := 201
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -449,4 +488,19 @@ func TestUnknownRequest(t *testing.T) {
 	client := kubernetes.NewForConfigOrDie(newConfig)
 	client.Discovery().RESTClient().Verb("invalid-verb").Do(context.Background())
 	assert.True(t, executed)
+}
+
+func TestDecodeObjectMetaMalformed(t *testing.T) {
+	envelope, err := (&runtime.Unknown{Raw: []byte{0x0a, 0xff}}).Marshal()
+	require.NoError(t, err)
+	for name, body := range map[string][]byte{
+		"truncated envelope": append(append([]byte{}, protobufPrefix...), 0x0a, 0xff),
+		"truncated metadata": append(append([]byte{}, protobufPrefix...), envelope...),
+		"invalid json":       []byte("{"),
+	} {
+		t.Run(name, func(t *testing.T) {
+			_, err := decodeObjectMeta(body)
+			assert.Error(t, err)
+		})
+	}
 }

@@ -1,6 +1,7 @@
 package kubeclientmetrics
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -9,7 +10,9 @@ import (
 	"strings"
 
 	log "github.com/sirupsen/logrus"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 )
 
@@ -108,19 +111,44 @@ func handleCreate(r *http.Request) ResourceInfo {
 		log.WithField("Kind", kind).Warnf("Unable to Process Create request: %v", err)
 		return ResourceInfo{}
 	}
-	var obj map[string]interface{}
-	err = json.Unmarshal(body, &obj)
+	meta, err := decodeObjectMeta(body)
 	if err != nil {
 		log.WithField("Kind", kind).Warnf("Unable to Process Create request: %v", err)
 		return ResourceInfo{}
 	}
-	un := unstructured.Unstructured{Object: obj}
 	return ResourceInfo{
 		Kind:      kind,
-		Namespace: un.GetNamespace(),
-		Name:      un.GetName(),
+		Namespace: meta.GetNamespace(),
+		Name:      meta.GetName(),
 		Verb:      Create,
 	}
+}
+
+// protobufPrefix is the magic number the Kubernetes protobuf serializer writes
+// before every encoded object.
+var protobufPrefix = []byte{0x6b, 0x38, 0x73, 0x00}
+
+// decodeObjectMeta reads the object metadata from a request body encoded as
+// either JSON or Kubernetes protobuf.
+func decodeObjectMeta(body []byte) (metav1.Object, error) {
+	if bytes.HasPrefix(body, protobufPrefix) {
+		var unknown runtime.Unknown
+		if err := unknown.Unmarshal(body[len(protobufPrefix):]); err != nil {
+			return nil, err
+		}
+		// Every object stores its ObjectMeta in field 1, the same field
+		// PartialObjectMetadata uses, so the rest of the object is skipped.
+		var meta metav1.PartialObjectMetadata
+		if err := meta.Unmarshal(unknown.Raw); err != nil {
+			return nil, err
+		}
+		return &meta, nil
+	}
+	var obj map[string]interface{}
+	if err := json.Unmarshal(body, &obj); err != nil {
+		return nil, err
+	}
+	return &unstructured.Unstructured{Object: obj}, nil
 }
 
 func (mrt *metricsRoundTripper) RoundTrip(r *http.Request) (*http.Response, error) {
