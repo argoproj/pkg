@@ -4,7 +4,7 @@ go 1.26.0
 
 require (
 	github.com/felixge/httpsnoop v1.1.0
-	github.com/grpc-ecosystem/grpc-gateway/v2 v2.32.0
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.33.0
 	github.com/sirupsen/logrus v1.10.2
 	github.com/stretchr/testify v1.12.1
 	google.golang.org/protobuf v1.36.12
@@ -18,8 +18,8 @@ require (
 	github.com/emicklei/go-restful/v3 v3.12.2 // indirect
 	github.com/fxamacker/cbor/v2 v2.9.0 // indirect
 	github.com/go-logr/logr v1.4.4 // indirect
-	github.com/go-openapi/jsonpointer v1.0.1 // indirect
-	github.com/go-openapi/jsonreference v1.0.2 // indirect
+	github.com/go-openapi/jsonpointer v1.0.2 // indirect
+	github.com/go-openapi/jsonreference v1.0.3 // indirect
 	github.com/go-openapi/swag v0.29.2 // indirect
 	github.com/go-openapi/swag/cmdutils v0.29.2 // indirect
 	github.com/go-openapi/swag/conv v0.29.2 // indirect
